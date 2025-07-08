@@ -40,6 +40,9 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+  pages: {
+    signIn: "/login",
+  },
   providers: [
     Credentials({
       name: "Credentials",
@@ -84,7 +87,7 @@ export const authConfig = {
         return {
           id: user.id,
           name: user.name,
-          email: user.name,
+          email: user.email,
         };
       },
     }),

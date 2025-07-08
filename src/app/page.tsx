@@ -1,75 +1,49 @@
 import Link from "next/link";
+import { ArrowRightIcon, ArrowRightStartOnRectangleIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
 
-import { LatestPost } from "~/app/_components/post";
 import { auth } from "~/server/auth";
-import { api, HydrateClient } from "~/trpc/server";
+import Image from "next/image";
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
   const session = await auth();
 
-  if (session?.user) {
-    void api.post.getLatest.prefetch();
-  }
-
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-transparent backdrop-blur-[2px]">
 
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
-              <Link
-                href={session ? "/success" : "/signup"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Success" : "Sign Up"}
-              </Link>
-            </div>
-          </div>
-
-          {session?.user && <LatestPost />}
+      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
+        <div className="w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40">
+          <Image
+            src="/IEEE-Branch-logo-blue-bg_transparent.png"
+            alt="IEEE SUSTech Student Branch"
+            width={500}
+            height={500}
+            className="w-full h-auto"
+            priority
+          />
         </div>
-      </main>
-    </HydrateClient>
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+          Official <span className="text-[#00629B]">IEEE SUSTech SB</span> Volunteer App
+        </h1>
+        <div className="w-full flex gap-1 items-center justify-center">
+          <h2 className="text-lg font-extrabold tracking-tight sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
+            Web App Under Construction
+          </h2>
+          <ExclamationTriangleIcon className="text-[#FFC72C] size-5 sm:size-6 md:size-7 lg:size-8 xl:size-9" />
+        </div>
+        <div className="flex flex-col items-center justify-center gap-2">
+          <p className="text-center text-2xl">
+            {session && <span>Logged in as {session.user?.name} - {session.user?.email}</span>}
+          </p>
+          <Link
+            href={session ? "/api/auth/signout" : "/login"}
+            className="group underline-offset-4 text-xl transition-all delay-300 hover:underline flex gap-1 items-center"
+          >
+            {session ? "Sign out" : "Sign in"}
+            {session ? <ArrowRightStartOnRectangleIcon className="size-4" /> : <><ChevronRightIcon className="size-4 group-hover:hidden" />
+              <ArrowRightIcon className="size-4 group-hover:block hidden" /></>}
+          </Link>
+        </div>
+      </div>
+    </main>
   );
 }
