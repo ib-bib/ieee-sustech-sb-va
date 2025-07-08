@@ -2,10 +2,8 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import bcrypt from "bcryptjs";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-// import DiscordProvider from "next-auth/providers/discord";
 import { z } from "zod";
 import { env } from "~/env";
-// import { eq, lt, gte, ne } from 'drizzle-orm';
 
 import { db } from "~/server/db";
 import {
@@ -43,16 +41,6 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-    // DiscordProvider,
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
     Credentials({
       name: "Credentials",
       credentials: {
@@ -117,8 +105,6 @@ export const authConfig = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        // Add any other user properties you want in the token
-        // e.g., token.role = user.role;
       }
       return token;
     },

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { api } from "~/trpc/react"; // Assuming tRPC client import
+import { api } from "~/trpc/react";
 
 export default function SignUpPage() {
     const [email, setEmail] = useState("");
@@ -13,7 +13,6 @@ export default function SignUpPage() {
 
     const createUser = api.user.create.useMutation({
         onSuccess: () => {
-            // After successful signup, redirect to sign-in or automatically sign in
             alert("Account created successfully! Please sign in.");
             router.push("/api/auth/signin");
         },
@@ -26,7 +25,6 @@ export default function SignUpPage() {
         e.preventDefault();
         setError(null);
 
-        // Basic client-side validation
         if (!email || !password || !name) {
             setError("All fields are required.");
             return;

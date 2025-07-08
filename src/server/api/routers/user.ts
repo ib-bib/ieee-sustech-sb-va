@@ -9,13 +9,12 @@ export const userRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         email: z.string().email(),
-        password: z.string().min(6), // Minimum password length
+        password: z.string().min(6),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { name, email, password } = input;
 
-      // Check if user already exists
       const existingUser = await ctx.db.query.users.findFirst({
         where: (users, { eq }) => eq(users.email, email),
       });
@@ -24,8 +23,7 @@ export const userRouter = createTRPCRouter({
         throw new Error("User with this email already exists.");
       }
 
-      // Hash the password before storing
-      const hashedPassword = await bcrypt.hash(password, 10); // 10 salt rounds recommended
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       return ctx.db.insert(users).values({
         name,
@@ -33,6 +31,4 @@ export const userRouter = createTRPCRouter({
         password: hashedPassword,
       });
     }),
-
-  // You might have other user-related procedures here
 });

@@ -80,7 +80,7 @@ export async function authenticateMobileRequest(req: NextRequest): Promise<{
       };
     }
 
-    return { user: user as AuthenticatedUser, response: null }; // Return the authenticated user
+    return { user: user as AuthenticatedUser, response: null };
   } catch (error) {
     console.error("JWT verification failed:", error);
     return {

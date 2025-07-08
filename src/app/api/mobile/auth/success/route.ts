@@ -8,10 +8,8 @@ export async function GET(req: NextRequest) {
     return response; // unauthorized
   }
 
-  // If we reached here, the user is authenticated.
-
   return NextResponse.json({
-    message: `Hello ${user?.name || user?.email}! This is protected data for mobile.`,
+    message: `Hello ${user?.name ?? user?.email}! This is protected data for mobile.`,
     userId: user?.id,
     timestamp: new Date().toISOString(),
   });
