@@ -53,6 +53,7 @@ export const users = createTable("user", (d) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
+  flags: many(flags),
 }));
 
 export const accounts = createTable(
@@ -109,3 +110,26 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+export const flags = createTable("flag", (d) => ({
+  id: d
+    .varchar({ length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  is_yellow: d.boolean(),
+  is_active: d.boolean(),
+  reason: d.varchar({ length: 256 }),
+  givenAt: d
+    .timestamp({ withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  userId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+}));
+
+export const flagsRelations = relations(flags, ({ one }) => ({
+  user: one(users, { fields: [flags.userId], references: [users.id] }),
+}));

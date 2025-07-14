@@ -5,3 +5,5 @@ COLORS FOR USE
 #772583
 #007377
 #002855
+
+endpoint for getting flags
