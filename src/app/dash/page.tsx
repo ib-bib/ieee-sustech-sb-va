@@ -2,9 +2,21 @@ import { BellIcon, UserIcon } from "@heroicons/react/24/outline"
 import { FlagIcon } from "@heroicons/react/24/solid"
 import Image from "next/image"
 import Link from "next/link"
-import { Dialog, DialogTrigger, DialogFooter, DialogHeader, DialogTitle, DialogContent, DialogDescription, DialogClose } from "~/components/ui/dialog";
+
 import { auth } from "~/server/auth";
 import { api } from "~/trpc/server";
+
+import { Dialog, DialogTrigger, DialogFooter, DialogHeader, DialogTitle, DialogContent } from "~/components/ui/dialog";
+import {
+    Card,
+    CardContent,
+} from "~/components/ui/card"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "~/components/ui/tabs"
 
 export default async function Dash() {
     const session = await auth();
@@ -57,14 +69,14 @@ export default async function Dash() {
                             )}
 
                             {flags.yellow_flags.length > 0 && (
-                                <p>
+                                <p className="text-sm">
                                     You need to obtain a rating of at least 70% this month to remove
                                     {flags.yellow_flags.length === 1 ? " your yellow flag." : " a yellow flag."}
                                 </p>
                             )}
 
                             {flags.red_flags.length > 0 && (
-                                <p>
+                                <p className="text-sm">
                                     You need to obtain a rating of at least 75% this month to remove
                                     {flags.red_flags.length === 1 ? " your red flag." : " a red flag."}
                                 </p>
@@ -72,30 +84,91 @@ export default async function Dash() {
                         </div>
                     </div>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Edit profile</DialogTitle>
-                        <DialogDescription>
-                            Make changes to your profile here. Click save when you&apos;re
-                            done.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4">
-                        <div className="grid gap-3">
-                            <label htmlFor="name-1">Name</label>
-                            <input id="name-1" name="name" defaultValue="Pedro Duarte" />
-                        </div>
-                        <div className="grid gap-3">
-                            <label htmlFor="username-1">Username</label>
-                            <input id="username-1" name="username" defaultValue="@peduarte" />
-                        </div>
+                <DialogContent className="min-h-[500px] max-h-[800px] overflow-y-auto min-w-[300px] flex flex-col justify-between overl">
+                    <div className="flex flex-col gap-2 grow">
+                        <DialogHeader>
+                            <DialogTitle className="text-center">Your Flags (Detailed View)</DialogTitle>
+                        </DialogHeader>
+
+                        <Tabs defaultValue="red" className="grow flex flex-col">
+                            <TabsList className="w-full mt-0 mb-2">
+                                <TabsTrigger value="red">Red {flags.red_flags.length}</TabsTrigger>
+                                <TabsTrigger value="yellow">Yellow {flags.yellow_flags.length}</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="red" className="flex flex-col grow h-full">
+                                <Card className="flex flex-col grow h-full">
+                                    <CardContent className="flex flex-col gap-4 overflow-y-auto h-[300px] pr-2">
+                                        {flags.red_flags.map((red_flag, i) => (
+                                            <div
+                                                key={`red-${i}`}
+                                                className="flex w-full"
+                                            >
+                                                <div className="w-[10%] flex justify-center items-start pt-1">
+                                                    <FlagIcon className="text-red-600 size-6 shrink-0" />
+                                                </div>
+                                                <div className="w-[90%] text-sm leading-relaxed break-words">
+                                                    <span className="font-semibold">
+                                                        {red_flag.givenAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                    </span>
+                                                    &nbsp;-&nbsp;
+                                                    <span>{red_flag.reason}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="yellow" className="flex flex-col grow h-full">
+                                <Card className="flex flex-col grow h-full">
+                                    <CardContent className="flex flex-col gap-4 overflow-y-auto h-[300px] pr-2">
+                                        {flags.yellow_flags.map((yellow_flag, i) => (
+                                            <div key={`yellow-${i}`} className="flex w-full">
+                                                <div className="w-[10%] flex justify-center items-start pt-1">
+                                                    <FlagIcon className="text-yellow-400 size-6 shrink-0" />
+                                                </div>
+                                                <div className="w-[90%] text-sm leading-relaxed break-words">
+                                                    <span className="font-semibold">
+                                                        {yellow_flag.givenAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                    </span>
+                                                    &nbsp;-&nbsp;
+                                                    <span>
+                                                        {yellow_flag.reason}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                        </Tabs>
                     </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            {/* <Button variant="outline">Cancel</Button> */}
-                            <button>Cancel</button>
-                        </DialogClose>
-                        <button type="submit">Save changes</button>
+                    <DialogFooter className="pt-4">
+                        <div className="flex justify-center text-center w-full flex-col items-center space-y-1 px-4">
+                            {flags.yellow_flags.length === 0 && flags.red_flags.length === 0 && (
+                                <p>You are in the clear this month! Good work 🙂</p>
+                            )}
+
+                            {flags.yellow_flags.length > 0 && (
+                                <p className="text-sm">
+                                    You need to obtain a rating of at least 70% this month to remove
+                                    {flags.yellow_flags.length === 1
+                                        ? " your yellow flag."
+                                        : " a yellow flag."}
+                                </p>
+                            )}
+
+                            {flags.red_flags.length > 0 && (
+                                <p className="text-sm">
+                                    You need to obtain a rating of at least 75% this month to remove
+                                    {flags.red_flags.length === 1
+                                        ? " your red flag."
+                                        : " a red flag."}
+                                </p>
+                            )}
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

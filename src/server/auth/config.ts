@@ -111,6 +111,12 @@ export const authConfig = {
       }
       return token;
     },
+    session: async ({ session, token }) => {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
   },
   secret: env.AUTH_SECRET,
 } satisfies NextAuthConfig;

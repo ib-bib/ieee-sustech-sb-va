@@ -34,6 +34,12 @@ export default async function Home() {
           <p className="text-center text-2xl">
             {session && <span>Logged in as {session.user?.name} - {session.user?.email}</span>}
           </p>
+          {session && <Link href="/dash" className="group underline-offset-4 text-xl transition-all delay-300 hover:underline flex gap-1 items-center"
+          >
+            Dashboard
+            <ChevronRightIcon className="size-4 group-hover:hidden" />
+            <ArrowRightIcon className="size-4 group-hover:block hidden" />
+          </Link>}
           <Link
             href={session ? "/api/auth/signout" : "/login"}
             className="group underline-offset-4 text-xl transition-all delay-300 hover:underline flex gap-1 items-center"

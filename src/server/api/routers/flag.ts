@@ -26,7 +26,7 @@ export const flagRouter = createTRPCRouter({
       : {
           status: "FLAGS_EXIST",
           yellow_flags: flags.filter((flag) => flag.is_yellow == true),
-          red_flags: flags.filter((flag) => (flag.is_yellow = false)),
+          red_flags: flags.filter((flag) => flag.is_yellow == false),
         };
   }),
 });
