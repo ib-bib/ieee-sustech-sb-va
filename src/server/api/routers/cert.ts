@@ -8,7 +8,7 @@ export const certRouter = createTRPCRouter({
       where: (u, { eq }) => eq(u.id, userId),
     });
 
-    if (!user || user.teamId === null) {
+    if (!user?.teamId) {
       return {
         status: "FAILED",
         percentage: -1,

@@ -1,4 +1,4 @@
-'use server'
+"use server"
 
 import { Dialog, DialogTrigger, DialogFooter, DialogHeader, DialogTitle, DialogContent } from "~/components/ui/dialog";
 import {
@@ -46,7 +46,7 @@ export const CertCard = async () => {
                     }
                     {
                         suggestions.length == 1 && <p className="text-sm">
-                            You're so close! Just one more step left to take! ⏳
+                            You&apos;re so close! Just one more step left to take! ⏳
                         </p>
                     }
                     {
@@ -56,7 +56,7 @@ export const CertCard = async () => {
                     }
                     {
                         suggestions.length > 1 && (general.fulfilled.length == 0 || team.fulfilled.length == 0) && <p className="text-sm">
-                            The road is long ahead, but you've got what it takes! 🌄
+                            The road is long ahead, but you&apos;ve got what it takes! 🌄
                         </p>
                     }
                 </div>
@@ -119,13 +119,13 @@ export const CertCard = async () => {
                             <p className="text-sm">Well done! You have earned your certification! 💯🤩</p>
                         )}
                         {suggestions.length === 1 && (
-                            <p className="text-sm">You're so close! Just one more step left to take! ⏳</p>
+                            <p className="text-sm">You&apos;re so close! Just one more step left to take! ⏳</p>
                         )}
                         {suggestions.length > 1 && (general.fulfilled.length > 0 || team.fulfilled.length > 0) && (
                             <p className="text-sm">Great work! Keep it up! 💪</p>
                         )}
                         {suggestions.length > 1 && (general.fulfilled.length === 0 || team.fulfilled.length === 0) && (
-                            <p className="text-sm">The road is long ahead, but you've got what it takes! 🌄</p>
+                            <p className="text-sm">The road is long ahead, but you&apos;ve got what it takes! 🌄</p>
                         )}
                     </div>
                 </DialogFooter>
