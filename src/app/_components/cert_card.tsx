@@ -55,7 +55,7 @@ export const CertCard = async () => {
                         </p>
                     }
                     {
-                        suggestions.length > 1 && (general.fulfilled.length == 0 || team.fulfilled.length == 0) && <p className="text-sm">
+                        suggestions.length > 1 && (general.fulfilled.length === 0 && team.fulfilled.length === 0) && <p className="text-sm">
                             The road is long ahead, but you&apos;ve got what it takes! 🌄
                         </p>
                     }
@@ -100,6 +100,18 @@ export const CertCard = async () => {
                             </div>
                         </div>
 
+                        <h3 className="font-medium text-muted-foreground text-center">Conditions you've already fulfilled</h3>
+
+                        <div className="overflow-y-auto flex-grow-0 max-h-40">
+                            <ul className="list-disc pl-5 space-y-2">
+                                {[...general.fulfilled, ...team.fulfilled].map((fulfilled) => (
+                                    <li key={fulfilled.id} className="text-sm leading-relaxed break-words">
+                                        <span className="font-semibold">{fulfilled.description}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
                         <h3 className="font-medium text-muted-foreground text-center">Suggestions on what to do next</h3>
 
                         <div className="overflow-y-auto flex-grow min-h-0">
@@ -124,7 +136,7 @@ export const CertCard = async () => {
                         {suggestions.length > 1 && (general.fulfilled.length > 0 || team.fulfilled.length > 0) && (
                             <p className="text-sm">Great work! Keep it up! 💪</p>
                         )}
-                        {suggestions.length > 1 && (general.fulfilled.length === 0 || team.fulfilled.length === 0) && (
+                        {suggestions.length > 1 && (general.fulfilled.length === 0 && team.fulfilled.length === 0) && (
                             <p className="text-sm">The road is long ahead, but you&apos;ve got what it takes! 🌄</p>
                         )}
                     </div>
