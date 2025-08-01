@@ -45,6 +45,7 @@ export const users = createTable("user", (d) => ({
     })
     .default(sql`CURRENT_TIMESTAMP`),
   image: d.varchar({ length: 255 }),
+  teamId: d.integer().references(() => teams.id),
   roleId: d.integer().references(() => roles.id),
 }));
 
@@ -55,6 +56,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   sessions: many(sessions),
   ratings: many(ratings),
   conditionFulfillments: many(conditionFulfillments),
+  team: one(teams),
   role: one(roles),
   suspensions: many(userSuspensions),
 }));
