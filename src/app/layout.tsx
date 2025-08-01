@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "IEEE SUSTech Student Branch",
   description: "Official Volunteer Web Application for the IEEE SUSTech Student Branch",
   keywords: ['IEEE Sudan University of Science and Technology Student Branch', 'IEEE Sudan University of Science and Technology', 'IEEE SUSTech Student Branch', 'IEEE SUSTech', 'IEEE Student Branch', 'IEEE', 'SUSTech', 'Student', 'Student Branch'],
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", url: "/favicon2.ico" }],
 };
 
 const geist = Geist({
