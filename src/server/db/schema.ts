@@ -59,6 +59,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   team: one(teams),
   role: one(roles),
   suspensions: many(userSuspensions),
+  // notifications - with email
 }));
 
 export const userSuspensions = createTable("user_suspension", (d) => ({
@@ -261,3 +262,11 @@ export const conditionFulfillmentsRelations = relations(
     }),
   }),
 );
+
+// table for events
+// sponsor
+// coordinator - user ID
+
+// event participation table
+
+//
