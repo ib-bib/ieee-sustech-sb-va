@@ -14,6 +14,7 @@ export const appRouter = createTRPCRouter({
   user: userRouter,
   flag: flagRouter,
   cert: certRouter,
+  rating: ratingRouter,
 });
 
 // export type definition of API

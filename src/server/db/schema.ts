@@ -269,4 +269,4 @@ export const conditionFulfillmentsRelations = relations(
 
 // event participation table
 
-//
+// USER avg rating calculated once a month - should be cached and in session

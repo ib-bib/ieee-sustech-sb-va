@@ -1,8 +1,9 @@
 import { BellIcon, UserIcon } from "@heroicons/react/24/outline"
 import Image from "next/image"
 import Link from "next/link"
-import { FlagsCard } from "../_components/flags_card"
-import { CertCard } from "../_components/cert_card"
+import { FlagsCard } from "~/app/_components/flags_card"
+import { CertCard } from "~/app/_components/cert_card"
+import RatingsCard from "~/app/_components/ratings_card"
 
 export default async function Dash() {
 
@@ -32,9 +33,7 @@ export default async function Dash() {
         <section className="w-full flex flex-wrap py-6 justify-center items-center gap-6 grow">
             <CertCard />
             <FlagsCard />
-            <div className="hover:-translate-y-5 transition-all shadow-2xl rounded-3xl bg-transparent backdrop-blur-xs hover:cursor-pointer w-64 h-96 flex flex-col items-center justify-between py-2 font-bold">
-                Your Ratings
-            </div>
+            <RatingsCard />
         </section>
     </main>
 }
