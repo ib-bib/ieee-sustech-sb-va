@@ -146,7 +146,6 @@ export const CertCard = async () => {
                   )}
                 </ul>
               </div>
-
               <h3 className="text-muted-foreground text-center font-medium">
                 Suggestions on what to do next
               </h3>
