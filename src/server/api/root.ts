@@ -1,8 +1,9 @@
 import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
-import { userRouter } from "./routers/user";
-import { flagRouter } from "./routers/flag";
-import { certRouter } from "./routers/cert";
+import { userRouter } from "~/server/api/routers/user";
+import { flagRouter } from "~/server/api/routers/flag";
+import { certRouter } from "~/server/api/routers/cert";
+import { ratingRouter } from "~/server/api/routers/rating";
 
 /**
  * This is the primary router for your server.
