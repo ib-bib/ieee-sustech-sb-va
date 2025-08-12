@@ -23,7 +23,6 @@ export const CertCard = async () => {
             <h3 className="w-full text-center font-bold">
               Certification Status
             </h3>
-
             <div className="relative flex size-40 w-full items-center justify-center">
               <svg
                 className="size-full -rotate-90"
@@ -50,7 +49,6 @@ export const CertCard = async () => {
                   strokeLinecap="round"
                 />
               </svg>
-
               <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
                 <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
                   {percentage} %
@@ -118,18 +116,15 @@ export const CertCard = async () => {
                     strokeLinecap="round"
                   />
                 </svg>
-
                 <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
                   <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
                     {percentage} %
                   </span>
                 </div>
               </div>
-
               <h3 className="text-muted-foreground text-center font-medium">
                 Conditions you&apos;ve already fulfilled
               </h3>
-
               <div className="max-h-40 flex-grow-0 overflow-y-auto">
                 <ul className="list-disc space-y-2 pl-5">
                   {[...general.fulfilled, ...team.fulfilled].map(
@@ -149,7 +144,6 @@ export const CertCard = async () => {
               <h3 className="text-muted-foreground text-center font-medium">
                 Suggestions on what to do next
               </h3>
-
               <div className="min-h-0 flex-grow overflow-y-auto">
                 <ul className="list-disc space-y-2 pl-5">
                   {suggestions.map((suggestion) => (
