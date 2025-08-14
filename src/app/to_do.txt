@@ -1,0 +1,12 @@
+COLORS FOR USE
+#981D97 
+#009CA6
+#00B5E2
+#772583
+#007377
+#002855
+
+Get Ratings in format that matches line chart
+Fix chart drawing full circle
+Notifications dialog box top right
+User dialog box top right

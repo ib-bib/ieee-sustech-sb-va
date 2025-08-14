@@ -12,167 +12,166 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 import { api } from "~/trpc/server";
-import { CircularProgressBar } from "~/app/_components/circular_progress_bar";
+import { ChartLineLinear } from "~/app/_components/line_chart_test";
 
 export default async function RatingsCard() {
   const { value: avg_rating, error } = await api.rating.getAverageRating();
 
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <div className="flex h-96 w-64 flex-col items-center justify-between rounded-3xl bg-transparent py-2 shadow-2xl backdrop-blur-xs transition-all hover:-translate-y-5 hover:cursor-pointer">
-          <div className="flex h-1/2 w-full flex-col gap-8">
-            <h3 className="w-full text-center font-bold">Your Ratings</h3>
-            <div className="flex w-full flex-col items-center justify-center gap-6">
-              <div className="flex w-full flex-col items-center gap-1">
-                <p>Last month's rating</p>
-                <div className="relative size-20">
-                  <svg
-                    className="size-full -rotate-90"
-                    viewBox="0 0 18 18"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="9"
-                      cy="9"
-                      r="8"
-                      fill="none"
-                      className="stroke-current text-gray-200 dark:text-neutral-700"
-                      strokeWidth="2"
-                    ></circle>
-                    <circle
-                      cx="9"
-                      cy="9"
-                      r="8"
-                      fill="none"
-                      className="stroke-current text-blue-600 dark:text-blue-500"
-                      strokeWidth="2"
-                      strokeDasharray="100"
-                      strokeDashoffset={`${100 - Number(avg_rating)}`}
-                      strokeLinecap="round"
-                    ></circle>
-                  </svg>
+  return (<Dialog>
+    <DialogTrigger asChild>
+      <div className="flex h-96 w-64 flex-col items-center justify-between rounded-3xl bg-transparent py-2 shadow-2xl backdrop-blur-xs transition-all hover:-translate-y-5 hover:cursor-pointer">
+        <div className="flex h-1/2 w-full flex-col gap-8">
+          <h3 className="w-full text-center font-bold">Your Ratings</h3>
+          <div className="flex w-full flex-col items-center justify-center gap-6">
+            <div className="flex w-full flex-col items-center gap-1">
+              <p>Last month's rating</p>
+              <div className="relative size-20">
+                <svg
+                  className="size-full -rotate-90"
+                  viewBox="0 0 18 18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="9"
+                    cy="9"
+                    r="8"
+                    fill="none"
+                    className="stroke-current text-gray-200 dark:text-neutral-700"
+                    strokeWidth="2"
+                  ></circle>
+                  <circle
+                    cx="9"
+                    cy="9"
+                    r="8"
+                    fill="none"
+                    className="stroke-current text-blue-600 dark:text-blue-500"
+                    strokeWidth="2"
+                    strokeDasharray="100"
+                    strokeDashoffset={`${100 - Number(avg_rating)}`}
+                    strokeLinecap="round"
+                  ></circle>
+                </svg>
 
-                  <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                    <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
-                      35%
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex w-full flex-col items-center gap-1">
-                <p>Average Rating</p>
-                <div className="relative size-20">
-                  <svg
-                    className="size-full -rotate-90"
-                    viewBox="0 0 18 18"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle
-                      cx="9"
-                      cy="9"
-                      r="8"
-                      fill="none"
-                      className="stroke-current text-gray-200 dark:text-neutral-700"
-                      strokeWidth="2"
-                    ></circle>
-                    <circle
-                      cx="9"
-                      cy="9"
-                      r="8"
-                      fill="none"
-                      className="stroke-current text-blue-600 dark:text-blue-500"
-                      strokeWidth="2"
-                      strokeDasharray="100"
-                      strokeDashoffset={`${100 - Number(avg_rating)}`}
-                      strokeLinecap="round"
-                    ></circle>
-                  </svg>
-
-                  <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                    <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
-                      35%
-                    </span>
-                  </div>
+                <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+                  <span className="text-xs flex justify-center items-center font-bold text-blue-600 dark:text-blue-500">
+                    {avg_rating} %
+                  </span>
                 </div>
               </div>
             </div>
-            <div className="flex w-full items-center justify-center gap-6"></div>
+            <div className="flex w-full flex-col items-center gap-1">
+              <p>Average Rating</p>
+              <div className="relative size-20">
+                <svg
+                  className="size-full -rotate-90"
+                  viewBox="0 0 18 18"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="9"
+                    cy="9"
+                    r="8"
+                    fill="none"
+                    className="stroke-current text-gray-200 dark:text-neutral-700"
+                    strokeWidth="2"
+                  ></circle>
+                  <circle
+                    cx="9"
+                    cy="9"
+                    r="8"
+                    fill="none"
+                    className="stroke-current text-blue-600 dark:text-blue-500"
+                    strokeWidth="2"
+                    strokeDasharray="100"
+                    strokeDashoffset={`${100 - Number(avg_rating)}`}
+                    strokeLinecap="round"
+                  ></circle>
+                </svg>
+
+                <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+                  <span className="flex justify-center items-center text-xs font-bold text-blue-600 dark:text-blue-500">
+                    {avg_rating} %
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex h-1/2 w-full flex-col items-center justify-end space-y-2 px-2 pb-4 text-center"></div>
+          <div className="flex w-full items-center justify-center gap-6"></div>
         </div>
-      </DialogTrigger>
-      <DialogContent className="flex max-h-[800px] min-h-[500px] min-w-[300px] flex-col justify-between overflow-y-auto">
-        <div className="flex grow flex-col gap-2">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              Your Flags (Detailed View)
-            </DialogTitle>
-          </DialogHeader>
+        <div className="flex h-1/2 w-full flex-col items-center justify-end space-y-2 px-2 pb-4 text-center"></div>
+      </div>
+    </DialogTrigger>
+    <DialogContent className="flex max-h-[800px] min-h-[500px] min-w-[300px] flex-col justify-between overflow-y-auto">
+      <div className="flex grow flex-col gap-2">
+        <DialogHeader>
+          <DialogTitle className="text-center">
+            Your Flags (Detailed View)
+          </DialogTitle>
+        </DialogHeader>
 
-          <Tabs defaultValue="current" className="flex grow flex-col">
-            <TabsList className="mt-0 mb-2 w-full">
-              <TabsTrigger value="current">Current Ratings</TabsTrigger>
-              <TabsTrigger value="history">Your Rating History</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="current" className="flex grow flex-col">
+          <TabsList className="mt-0 mb-2 w-full">
+            <TabsTrigger value="current">Current Ratings</TabsTrigger>
+            <TabsTrigger value="history">Your Rating History</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="current" className="flex h-full grow flex-col">
-              <Card className="flex h-full grow flex-col">
-                <CardContent className="flex h-[300px] flex-col gap-4 overflow-y-auto pr-2">
-                  Test for Current
-                  <div className="relative flex size-40 w-full items-center justify-center">
-                    <svg
-                      className="size-full -rotate-90"
-                      viewBox="0 0 36 36"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="16"
-                        fill="none"
-                        className="stroke-current text-gray-200 dark:text-neutral-700"
-                        strokeWidth="2"
-                      ></circle>
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="16"
-                        fill="none"
-                        className="stroke-current text-blue-600 dark:text-blue-500"
-                        strokeWidth="2"
-                        strokeDasharray="100"
-                        strokeDashoffset={`${100 - Number(avg_rating)}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
+          <TabsContent value="current" className="flex h-full grow flex-col">
+            <Card className="flex h-full grow flex-col">
+              <CardContent className="flex h-[300px] flex-col gap-4 overflow-y-auto pr-2">
+                Test for Current
+                <div className="relative flex size-40 w-full items-center justify-center">
+                  <svg
+                    className="size-full -rotate-90"
+                    viewBox="0 0 36 36"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="16"
+                      fill="none"
+                      className="stroke-current text-gray-200 dark:text-neutral-700"
+                      strokeWidth="2"
+                    ></circle>
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="16"
+                      fill="none"
+                      className="stroke-current text-blue-600 dark:text-blue-500"
+                      strokeWidth="2"
+                      strokeDasharray="100"
+                      strokeDashoffset={`${100 - Number(avg_rating)}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
 
-                    <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                      <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
-                        {avg_rating} %
-                      </span>
-                    </div>
+                  <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+                    <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
+                      {avg_rating} %
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            <TabsContent value="history" className="flex h-full grow flex-col">
-              <Card className="flex h-full grow flex-col">
-                <CardContent className="flex h-[300px] flex-col gap-4 overflow-y-auto pr-2">
-                  This should be a chart
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <TabsContent value="history" className="flex h-full grow flex-col">
+            <Card className="flex h-full grow flex-col">
+              <CardContent className="flex h-[300px] flex-col gap-4 overflow-y-auto pr-2">
+                <ChartLineLinear />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+      <DialogFooter className="pt-4">
+        <div className="flex w-full flex-col items-center justify-center space-y-1 px-4 text-center">
+          Make sure you stay above 75% every month to maintain a good track
+          record
         </div>
-        <DialogFooter className="pt-4">
-          <div className="flex w-full flex-col items-center justify-center space-y-1 px-4 text-center">
-            Make sure you stay above 75% every month to maintain a good track
-            record
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
   );
 }

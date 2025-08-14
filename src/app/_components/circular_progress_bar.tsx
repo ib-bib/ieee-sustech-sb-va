@@ -8,7 +8,7 @@ export const CircularProgressBar = () => {
         </svg>
 
         <div className="absolute top-1/2 start-1/2 transform -translate-y-1/2 -translate-x-1/2">
-            <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">35%</span>
+            <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">{`${100 - Number(avg_rating)}`}</span>
         </div>
     </div>
 }

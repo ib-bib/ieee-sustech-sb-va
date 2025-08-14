@@ -1,9 +1,0 @@
-COLORS FOR USE
-#981D97 
-#009CA6
-#00B5E2
-#772583
-#007377
-#002855
-
-endpoint for getting flags
