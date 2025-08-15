@@ -15,7 +15,10 @@ import { api } from "~/trpc/server";
 import { ChartLineLinear } from "~/app/_components/line_chart_test";
 
 export default async function RatingsCard() {
-  const { value: avg_rating, error } = await api.rating.getAverageRating();
+  const { value } = await api.rating.getAverageRating();
+  const avg_rating = 71
+
+  const radius = 15;
 
   return (<Dialog>
     <DialogTrigger asChild>
@@ -25,78 +28,79 @@ export default async function RatingsCard() {
           <div className="flex w-full flex-col items-center justify-center gap-6">
             <div className="flex w-full flex-col items-center gap-1">
               <p>Last month's rating</p>
-              <div className="relative size-20">
+              <div className="relative size-28">
                 <svg
                   className="size-full -rotate-90"
-                  viewBox="0 0 18 18"
+                  viewBox="0 0 36 36" // same proportions as big circle
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <circle
-                    cx="9"
-                    cy="9"
-                    r="8"
+                    cx="18"
+                    cy="18"
+                    r={radius}
                     fill="none"
                     className="stroke-current text-gray-200 dark:text-neutral-700"
-                    strokeWidth="2"
-                  ></circle>
+                    strokeWidth="1.5"
+                  />
                   <circle
-                    cx="9"
-                    cy="9"
-                    r="8"
+                    cx="18"
+                    cy="18"
+                    r={radius}
                     fill="none"
                     className="stroke-current text-blue-600 dark:text-blue-500"
-                    strokeWidth="2"
-                    strokeDasharray="100"
-                    strokeDashoffset={`${100 - Number(avg_rating)}`}
+                    strokeWidth="1.5"
+                    strokeDasharray={"100"}
+                    strokeDashoffset={`${100 - avg_rating}`}
                     strokeLinecap="round"
-                  ></circle>
+                  />
                 </svg>
 
                 <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                  <span className="text-xs flex justify-center items-center font-bold text-blue-600 dark:text-blue-500">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-500">
                     {avg_rating} %
                   </span>
                 </div>
               </div>
             </div>
+
             <div className="flex w-full flex-col items-center gap-1">
               <p>Average Rating</p>
-              <div className="relative size-20">
+              <div className="relative size-28">
                 <svg
                   className="size-full -rotate-90"
-                  viewBox="0 0 18 18"
+                  viewBox="0 0 36 36"
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <circle
-                    cx="9"
-                    cy="9"
-                    r="8"
+                    cx="18"
+                    cy="18"
+                    r={radius}
                     fill="none"
                     className="stroke-current text-gray-200 dark:text-neutral-700"
-                    strokeWidth="2"
-                  ></circle>
+                    strokeWidth="1.5"
+                  />
                   <circle
-                    cx="9"
-                    cy="9"
-                    r="8"
+                    cx="18"
+                    cy="18"
+                    r={radius}
                     fill="none"
                     className="stroke-current text-blue-600 dark:text-blue-500"
-                    strokeWidth="2"
+                    strokeWidth="1.5"
                     strokeDasharray="100"
-                    strokeDashoffset={`${100 - Number(avg_rating)}`}
+                    strokeDashoffset={`${100 - avg_rating}`}
                     strokeLinecap="round"
-                  ></circle>
+                  />
                 </svg>
 
                 <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                  <span className="flex justify-center items-center text-xs font-bold text-blue-600 dark:text-blue-500">
+                  <span className="text-xs font-bold text-blue-600 dark:text-blue-500">
                     {avg_rating} %
                   </span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex w-full items-center justify-center gap-6"></div>
+          {/* <div className="flex w-full items-center justify-center gap-6"></div> */}
         </div>
         <div className="flex h-1/2 w-full flex-col items-center justify-end space-y-2 px-2 pb-4 text-center"></div>
       </div>
@@ -117,8 +121,7 @@ export default async function RatingsCard() {
 
           <TabsContent value="current" className="flex h-full grow flex-col">
             <Card className="flex h-full grow flex-col">
-              <CardContent className="flex h-[300px] flex-col gap-4 overflow-y-auto pr-2">
-                Test for Current
+              <CardContent className="flex h-[200px] flex-col gap-4 pr-2">
                 <div className="relative flex size-40 w-full items-center justify-center">
                   <svg
                     className="size-full -rotate-90"
@@ -141,7 +144,7 @@ export default async function RatingsCard() {
                       className="stroke-current text-blue-600 dark:text-blue-500"
                       strokeWidth="2"
                       strokeDasharray="100"
-                      strokeDashoffset={`${100 - Number(avg_rating)}`}
+                      strokeDashoffset={`${100 - avg_rating}`}
                       strokeLinecap="round"
                     />
                   </svg>
@@ -151,6 +154,10 @@ export default async function RatingsCard() {
                       {avg_rating} %
                     </span>
                   </div>
+                </div>
+                <div className="flex justify-center items-center">
+                  {avg_rating <= 70 ?
+                    "You can do better 💪" : avg_rating <= 79 ? "Good work, keep rising upwards 📈" : avg_rating <= 89 ? "Great work! Keep it up 😃" : "Well Done! Fantastic work 🤩"}
                 </div>
               </CardContent>
             </Card>
