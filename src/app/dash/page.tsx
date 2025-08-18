@@ -1,9 +1,11 @@
-import { BellIcon, UserIcon } from "@heroicons/react/24/outline"
+
 import Image from "next/image"
 import Link from "next/link"
 import { FlagsCard } from "~/app/_components/flags_card"
 import { CertCard } from "~/app/_components/cert_card"
 import RatingsCard from "~/app/_components/ratings_card"
+import { NotificationsMenu } from "../_components/notifications_menu"
+import { AccountMenu } from "../_components/account_menu"
 
 export default async function Dash() {
 
@@ -21,13 +23,8 @@ export default async function Dash() {
                 </Link>
             </div>
             <div className="flex gap-4 items-center h-full justify-end">
-                <button className="size-8 flex justify-center items-center group shadow-2xl bg-blue-500 hover:bg-blue-800 hover:cursor-pointer rounded-full transition-all active:scale-90">
-                    <BellIcon className="text-white size-6" />
-                </button>
-                <button
-                    className="size-8 flex justify-center items-center group shadow-2xl bg-blue-500 hover:bg-blue-800 hover:cursor-pointer rounded-full transition-all active:scale-90">
-                    <UserIcon className="text-white size-6" />
-                </button>
+                <NotificationsMenu />
+                <AccountMenu />
             </div>
         </nav>
         <section className="w-full flex flex-wrap py-6 justify-center items-center gap-6 grow">
