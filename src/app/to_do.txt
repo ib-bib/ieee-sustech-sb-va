@@ -6,11 +6,6 @@ COLORS FOR USE
 #007377
 #002855
 
-Notifications dialog box top right
-User dialog box top right
-Orange dot on notifications bell when new are present
-With every read notification, move line up
-
 
 Get Ratings in format that matches line chart
 Login on pressing enter key - event listener
