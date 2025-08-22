@@ -1,0 +1,16 @@
+COLORS FOR USE
+#981D97 
+#009CA6
+#00B5E2
+#772583
+#007377
+#002855
+
+
+Get Ratings in format that matches line chart
+Login on pressing enter key - event listener
+
+
+https://ui.shadcn.com/docs/components/resizable
+
+https://ui.shadcn.com/docs/components/select
