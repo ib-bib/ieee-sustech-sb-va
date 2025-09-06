@@ -263,6 +263,23 @@ export const conditionFulfillmentsRelations = relations(
   }),
 );
 
+export const events = createTable("event", (d) => ({
+  //   id:
+  //   - start time
+  // - end time
+  // - event name
+  // - sponsor (string but nullable)
+  // - location name
+  // - location link (nullable)
+  // - description
+}));
+
+export const eventParticipations = createTable("event_participation", (d) => ({
+  //   - event ID
+  // - user ID
+  // - description (can be executive, can be planner, can be coordinator)
+}));
+
 // table for events
 // sponsor
 // coordinator - user ID
