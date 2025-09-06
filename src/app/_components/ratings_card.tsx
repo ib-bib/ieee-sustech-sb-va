@@ -16,7 +16,7 @@ import { ChartLineLinear } from "~/app/_components/ratings_line_chart";
 
 export default async function RatingsCard() {
   const { value } = await api.rating.getAverageRating();
-  const avg_rating = Number(value)
+  const avg_rating = Number(value);
 
   const radius = 15;
 
@@ -110,13 +110,13 @@ export default async function RatingsCard() {
         <div className="flex grow flex-col gap-2">
           <DialogHeader>
             <DialogTitle className="text-center">
-              Your Flags (Detailed View)
+              Your Ratings (Detailed View)
             </DialogTitle>
           </DialogHeader>
 
           <Tabs defaultValue="current" className="flex grow flex-col">
             <TabsList className="mt-0 mb-2 w-full">
-              <TabsTrigger value="current">Current Rating</TabsTrigger>
+              <TabsTrigger value="current">Current Ratings</TabsTrigger>
               <TabsTrigger value="history">Your Rating History</TabsTrigger>
             </TabsList>
 
@@ -156,9 +156,14 @@ export default async function RatingsCard() {
                       </span>
                     </div>
                   </div>
-                  <div className="flex justify-center items-center">
-                    {avg_rating <= 70 ?
-                      "You can do better 💪" : avg_rating <= 79 ? "Good work, keep rising upwards 📈" : avg_rating <= 89 ? "Great work! Keep it up 😃" : "Well Done! Fantastic work 🤩"}
+                  <div className="flex items-center justify-center">
+                    {avg_rating <= 70
+                      ? "You can do better 💪"
+                      : avg_rating <= 79
+                        ? "Good work, keep rising upwards 📈"
+                        : avg_rating <= 89
+                          ? "Great work! Keep it up 😃"
+                          : "Well Done! Fantastic work 🤩"}
                   </div>
                 </CardContent>
               </Card>
@@ -166,7 +171,7 @@ export default async function RatingsCard() {
 
             <TabsContent value="history" className="flex h-full grow flex-col">
               <Card className="flex h-full grow flex-col">
-                <CardContent className="flex flex-col max-h-[400px] gap-4 overflow-y-auto pr-2">
+                <CardContent className="flex max-h-[400px] flex-col gap-4 overflow-y-auto pr-2">
                   <ChartLineLinear />
                 </CardContent>
               </Card>

@@ -1,5 +1,4 @@
-import { z } from "zod";
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { ratings, users } from "~/server/db/schema";
 import { avg, eq } from "drizzle-orm";
 
@@ -10,7 +9,23 @@ export const ratingRouter = createTRPCRouter({
             orderBy: (ratings, {desc}) => [desc(ratings.givenAt)],
             limit: 1
         })
+
+        if (!ratings.length) {
+            return {
+                value: null,
+                error: "Server error. Please try again"
+            }
+        }
+
+        return ratings.length > 0 ? {
+            value: ratings[0],
+            error: null,
+        } : {
+            value: null,
+            error: "No ratings recorded yet"
+        }
     }),
+
     getAverageRating: protectedProcedure.query(async ({ctx}) => {
         const averageRating = await ctx.db.select({
             value: avg(ratings.value),
