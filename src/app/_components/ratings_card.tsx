@@ -14,11 +14,49 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/trpc/server";
 import { ChartLineLinear } from "~/app/_components/ratings_line_chart";
 
+type ChartEntry = {
+  month: string;
+  rating: number;
+};
+
+type ChartData = {
+  [year: string]: ChartEntry[];
+};
+
 export default async function RatingsCard() {
-  const { value } = await api.rating.getAverageRating();
-  const avg_rating = Number(value);
+  const latest_rating_request = await api.rating.getLatestRating();
+  const latest_rating_value = latest_rating_request.value;
+  const latest_rating = Number(latest_rating_value);
+
+  const avg_rating_request = await api.rating.getAverageRating();
+  const avg_rating_value = avg_rating_request.value;
+  const avg_rating = Number(avg_rating_value);
 
   const radius = 15;
+
+  const ratingsHistory = await api.rating.getRatingsHistory();
+  const years = Array.from(
+    new Set(ratingsHistory.value?.map((record) => String(record.year)) ?? []),
+  ).map((year) => ({
+    value: year,
+    label: year,
+  }));
+
+  const ratings: ChartData =
+    ratingsHistory.value?.reduce<ChartData>((acc, record) => {
+      const year = String(record.year);
+
+      if (!acc[year]) {
+        acc[year] = [];
+      }
+
+      acc[year].push({
+        month: String(record.month) ?? "",
+        rating: Number(record.value) ?? 0,
+      });
+
+      return acc;
+    }, {}) ?? {};
 
   return (
     <Dialog>
@@ -51,14 +89,14 @@ export default async function RatingsCard() {
                       className="stroke-current text-blue-600 dark:text-blue-500"
                       strokeWidth="1.5"
                       strokeDasharray={"100"}
-                      strokeDashoffset={`${100 - avg_rating}`}
+                      strokeDashoffset={`${100 - latest_rating}`}
                       strokeLinecap="round"
                     />
                   </svg>
 
                   <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
                     <span className="text-xs font-bold text-blue-600 dark:text-blue-500">
-                      {avg_rating} %
+                      {latest_rating} %
                     </span>
                   </div>
                 </div>
@@ -106,7 +144,7 @@ export default async function RatingsCard() {
           <div className="flex h-1/2 w-full flex-col items-center justify-end space-y-2 px-2 pb-4 text-center"></div>
         </div>
       </DialogTrigger>
-      <DialogContent className="flex h-[600px] min-w-[300px] flex-col justify-between">
+      <DialogContent className="flex min-w-[300px] flex-col justify-between">
         <div className="flex grow flex-col gap-2">
           <DialogHeader>
             <DialogTitle className="text-center">
@@ -120,59 +158,99 @@ export default async function RatingsCard() {
               <TabsTrigger value="history">Your Rating History</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="current" className="flex h-full grow flex-col">
-              <Card className="flex h-full grow flex-col">
-                <CardContent className="flex h-[200px] flex-col gap-4 pr-2">
-                  <div className="relative flex size-40 w-full items-center justify-center">
-                    <svg
-                      className="size-full -rotate-90"
-                      viewBox="0 0 36 36"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="16"
-                        fill="none"
-                        className="stroke-current text-gray-200 dark:text-neutral-700"
-                        strokeWidth="2"
-                      ></circle>
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="16"
-                        fill="none"
-                        className="stroke-current text-blue-600 dark:text-blue-500"
-                        strokeWidth="2"
-                        strokeDasharray="100"
-                        strokeDashoffset={`${100 - avg_rating}`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
+            <TabsContent value="current" className="flex grow flex-col">
+              <Card className="flex grow flex-col">
+                <CardContent className="flex flex-col gap-8 pr-2">
+                  <div className="flex w-full flex-col items-center gap-1">
+                    <p className="font-bold">Last month's rating</p>
+                    <div className="relative flex size-40 w-full items-center justify-center">
+                      <svg
+                        className="size-full -rotate-90"
+                        viewBox="0 0 36 36"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="16"
+                          fill="none"
+                          className="stroke-current text-gray-200 dark:text-neutral-700"
+                          strokeWidth="2"
+                        ></circle>
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="16"
+                          fill="none"
+                          className="stroke-current text-blue-600 dark:text-blue-500"
+                          strokeWidth="2"
+                          strokeDasharray="100"
+                          strokeDashoffset={`${100 - latest_rating}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
 
-                    <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                      <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
-                        {avg_rating} %
-                      </span>
+                      <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+                        <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
+                          {latest_rating} %
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center">
-                    {avg_rating <= 70
-                      ? "You can do better 💪"
-                      : avg_rating <= 79
-                        ? "Good work, keep rising upwards 📈"
-                        : avg_rating <= 89
-                          ? "Great work! Keep it up 😃"
-                          : "Well Done! Fantastic work 🤩"}
+
+                  <div className="flex w-full flex-col items-center gap-1">
+                    <p className="font-bold">Average Rating</p>
+                    <div className="relative flex size-40 w-full items-center justify-center">
+                      <svg
+                        className="size-full -rotate-90"
+                        viewBox="0 0 36 36"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="16"
+                          fill="none"
+                          className="stroke-current text-gray-200 dark:text-neutral-700"
+                          strokeWidth="2"
+                        ></circle>
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="16"
+                          fill="none"
+                          className="stroke-current text-blue-600 dark:text-blue-500"
+                          strokeWidth="2"
+                          strokeDasharray="100"
+                          strokeDashoffset={`${100 - avg_rating}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+
+                      <div className="absolute start-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
+                        <span className="text-center text-2xl font-bold text-blue-600 dark:text-blue-500">
+                          {avg_rating} %
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      {avg_rating <= 70
+                        ? "You can do better 💪"
+                        : avg_rating <= 79
+                          ? "Good work, keep climbing upwards 📈"
+                          : avg_rating <= 89
+                            ? "Great work! Keep it up 😃"
+                            : "Well Done! Fantastic work 🤩"}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="history" className="flex h-full grow flex-col">
-              <Card className="flex h-full grow flex-col">
+            <TabsContent value="history" className="flex grow flex-col">
+              <Card className="flex grow flex-col">
                 <CardContent className="flex max-h-[400px] flex-col gap-4 overflow-y-auto pr-2">
-                  <ChartLineLinear />
+                  <ChartLineLinear years={years} ratings={ratings} />
                 </CardContent>
               </Card>
             </TabsContent>

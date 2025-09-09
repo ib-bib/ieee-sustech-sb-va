@@ -17,8 +17,8 @@ export const ratingRouter = createTRPCRouter({
             }
         }
 
-        return ratings.length > 0 ? {
-            value: ratings[0],
+        return ratings[0]?.value ? {
+            value: ratings[0].value,
             error: null,
         } : {
             value: null,
@@ -43,5 +43,27 @@ export const ratingRouter = createTRPCRouter({
             value: Number(averageRating[0]?.value).toFixed(2),
             error: null
         }
+    }),
+
+    getRatingsHistory: protectedProcedure.query(async ({ctx}) => {
+        const ratingHistory = await ctx.db.query.ratings.findMany({
+            where: (ratings, {eq}) => eq(ratings.userId, ctx.session.user.id)
+        })
+
+        if (!ratingHistory) {
+            return {
+                value: null,
+                error: 'Server error. Please try again.'
+            }
+        }
+
+        return ratingHistory.length > 0 ? {
+            value: ratingHistory,
+            error: null
+        } : {
+            value: [],
+            error: 'No recorded history yet'
+        }
+        
     })
 });
