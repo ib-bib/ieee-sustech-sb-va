@@ -47,7 +47,8 @@ export const ratingRouter = createTRPCRouter({
 
     getRatingsHistory: protectedProcedure.query(async ({ctx}) => {
         const ratingHistory = await ctx.db.query.ratings.findMany({
-            where: (ratings, {eq}) => eq(ratings.userId, ctx.session.user.id)
+            where: (ratings, {eq}) => eq(ratings.userId, ctx.session.user.id),
+            orderBy: (ratings, {asc}) => asc(ratings.month),
         })
 
         if (!ratingHistory) {
@@ -56,6 +57,8 @@ export const ratingRouter = createTRPCRouter({
                 error: 'Server error. Please try again.'
             }
         }
+
+        console.log(ratingHistory)
 
         return ratingHistory.length > 0 ? {
             value: ratingHistory,

@@ -35,7 +35,7 @@ export function ChartLineLinear({
   years: any[];
   ratings: ChartData;
 }) {
-  const [selectedYear, setSelectedYear] = useState(years[0] ?? "");
+  const [selectedYear, setSelectedYear] = useState(years[0].value);
 
   const chartData: ChartData = ratings;
 
@@ -51,7 +51,6 @@ export function ChartLineLinear({
       <CardHeader>
         <CardTitle>Tracked Rating History</CardTitle>
         <CardDescription>
-          {/* Year {selectedYear} */}
           <RatingsYearDropdownMenu
             selectedYear={selectedYear}
             setSelectedYear={setSelectedYear}

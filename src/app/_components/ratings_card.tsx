@@ -23,6 +23,16 @@ type ChartData = {
   [year: string]: ChartEntry[];
 };
 
+function getMonthName(monthNumber: number, locale = "en-US") {
+  // Create a Date object. The day and year don't matter, only the month.
+  // setMonth() takes a zero-based index (0 for January, 11 for December).
+  const date = new Date();
+  date.setMonth(monthNumber - 1);
+
+  // Use toLocaleString to get the month name.
+  return date.toLocaleString(locale, { month: "long" });
+}
+
 export default async function RatingsCard() {
   const latest_rating_request = await api.rating.getLatestRating();
   const latest_rating_value = latest_rating_request.value;
@@ -51,7 +61,7 @@ export default async function RatingsCard() {
       }
 
       acc[year].push({
-        month: String(record.month) ?? "",
+        month: getMonthName(record.month!).substring(0, 3),
         rating: Number(record.value) ?? 0,
       });
 
