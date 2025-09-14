@@ -6,8 +6,9 @@ COLORS FOR USE
 #007377
 #002855
 
-
-Get Ratings in format that matches line chart
+- Change password functionality
+- Forgot password functionality
+- Notifications - read/unread functionality
 Login on pressing enter key - event listener
 
 
