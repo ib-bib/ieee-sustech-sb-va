@@ -59,7 +59,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   team: one(teams),
   role: one(roles),
   suspensions: many(userSuspensions),
-  // notifications - with email
+  notifications: many(notifications),
+  eventParticipations: many(eventParticipations),
+  coordinatedEvents: many(events),
 }));
 
 export const userSuspensions = createTable("user_suspension", (d) => ({
@@ -264,26 +266,81 @@ export const conditionFulfillmentsRelations = relations(
 );
 
 export const events = createTable("event", (d) => ({
-  //   id:
-  //   - start time
-  // - end time
-  // - event name
-  // - sponsor (string but nullable)
-  // - location name
-  // - location link (nullable)
-  // - description
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  name: d.varchar({ length: 255 }).notNull(),
+  description: d.varchar({ length: 1024 }),
+  sponsor: d.varchar({ length: 255 }),
+  locationName: d.varchar({ length: 255 }),
+  locationLink: d.varchar({ length: 510 }),
+  startTime: d.timestamp({ withTimezone: true, mode: "date" }).notNull(),
+  endTime: d.timestamp({ withTimezone: true, mode: "date" }).notNull(),
+  coordinatorId: d.varchar({ length: 255 }).references(() => users.id),
+  createdAt: d
+    .timestamp({ withTimezone: true, mode: "date" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: d
+    .timestamp({ withTimezone: true, mode: "date" })
+    .$onUpdate(() => new Date()),
+}));
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  coordinator: one(users, {
+    fields: [events.coordinatorId],
+    references: [users.id],
+  }),
+  participations: many(eventParticipations),
 }));
 
 export const eventParticipations = createTable("event_participation", (d) => ({
-  //   - event ID
-  // - user ID
-  // - description (can be executive, can be planner, can be coordinator)
+  id: d
+    .varchar({ length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventId: d
+    .integer()
+    .notNull()
+    .references(() => events.id),
+  userId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  roleDescription: d.varchar({ length: 255 }), // e.g. executive, planner, coordinator
+  joinedAt: d
+    .timestamp({ withTimezone: true, mode: "date" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 }));
 
-// table for events
-// sponsor
-// coordinator - user ID
+export const eventParticipationsRelations = relations(
+  eventParticipations,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [eventParticipations.eventId],
+      references: [events.id],
+    }),
+    user: one(users, {
+      fields: [eventParticipations.userId],
+      references: [users.id],
+    }),
+  }),
+);
 
-// event participation table
+export const notifications = createTable("notification", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  userId: d
+    .varchar({ length: 255 })
+    .notNull()
+    .references(() => users.id),
+  message: d.varchar({ length: 510 }),
+  isRead: d.boolean().default(false).notNull(),
+  createdAt: d
+    .timestamp({ withTimezone: true, mode: "date" })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+}));
 
-// USER avg rating calculated once a month - should be cached and in session
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
