@@ -4,6 +4,7 @@ import { userRouter } from "~/server/api/routers/user";
 import { flagRouter } from "~/server/api/routers/flag";
 import { certRouter } from "~/server/api/routers/cert";
 import { ratingRouter } from "~/server/api/routers/rating";
+import { notificationRouter } from "~/server/api/routers/notification";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   flag: flagRouter,
   cert: certRouter,
   rating: ratingRouter,
+  notif: notificationRouter,
 });
 
 // export type definition of API
