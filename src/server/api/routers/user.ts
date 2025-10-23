@@ -1,7 +1,13 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import bcrypt from "bcryptjs";
 import { users } from "~/server/db/schema";
+import crypto from "crypto";
+import dayjs from "dayjs";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -30,5 +36,16 @@ export const userRouter = createTRPCRouter({
         email,
         password: hashedPassword,
       });
+    }),
+
+  updatePassword: protectedProcedure
+    .input(
+      z.object({
+        password: z.string(),
+        confirmedPassword: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { password, confirmedPassword } = input;
     }),
 });
