@@ -335,6 +335,7 @@ export const notifications = createTable("notification", (d) => ({
     .references(() => users.id),
   message: d.varchar({ length: 510 }),
   isRead: d.boolean().default(false).notNull(),
+  isCleared: d.boolean().default(false).notNull(),
   createdAt: d
     .timestamp({ withTimezone: true, mode: "date" })
     .default(sql`CURRENT_TIMESTAMP`)
