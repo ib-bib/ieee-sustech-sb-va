@@ -8,6 +8,7 @@ import bcrypt from "bcryptjs";
 import { users } from "~/server/db/schema";
 import crypto from "crypto";
 import dayjs from "dayjs";
+import nodemailer from "nodemailer";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -47,5 +48,26 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { password, confirmedPassword } = input;
+
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, ctx.session.user.id),
+      });
+
+      if (!user) {
+      }
+    }),
+
+  sendVerificationLink: publicProcedure
+    .input(
+      z.object({
+        email: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { email } = input;
+
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.email, email),
+      });
     }),
 });
