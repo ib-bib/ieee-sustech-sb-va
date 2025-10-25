@@ -334,14 +334,28 @@ export const notifications = createTable("notification", (d) => ({
     .notNull()
     .references(() => users.id),
   message: d.varchar({ length: 510 }),
-  isRead: d.boolean().default(false).notNull(),
-  isCleared: d.boolean().default(false).notNull(),
+  isRead: d.boolean("is_read").default(false).notNull(),
+  isCleared: d.boolean("is_cleared").default(false).notNull(),
   createdAt: d
-    .timestamp({ withTimezone: true, mode: "date" })
+    .timestamp("created_at", { withTimezone: true, mode: "date" })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
+
+export const passwordResetTokens = createTable("password_reset_token", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  userId: d
+    .varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  tokenCode: d.varchar("token").notNull(),
+  expiresAt: d
+    .timestamp("expires_at")
+    .default(sql`(now() + interval '24 hours')`)
+    .notNull(),
+  createdAt: d.timestamp("created_at").defaultNow(),
 }));
