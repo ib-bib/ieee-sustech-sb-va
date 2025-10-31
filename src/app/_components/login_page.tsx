@@ -63,6 +63,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-300 p-3">
               <EnvelopeIcon className="size-5" />
               <input
+                name="email"
                 className="outline-none"
                 placeholder="name@email.com"
                 type="email"
@@ -77,6 +78,7 @@ export default function LoginPage() {
             <div className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-300 p-3">
               <LockClosedIcon className="size-5" />
               <input
+                name="password"
                 className="outline-none"
                 placeholder="Password"
                 type={passwordShowing ? "text" : "password"}

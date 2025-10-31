@@ -42,6 +42,7 @@ declare module "next-auth" {
 export const authConfig = {
   pages: {
     signIn: "/login",
+    signOut: "/",
   },
   providers: [
     Credentials({

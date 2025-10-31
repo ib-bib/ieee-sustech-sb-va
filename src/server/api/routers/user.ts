@@ -42,18 +42,30 @@ export const userRouter = createTRPCRouter({
   updatePassword: protectedProcedure
     .input(
       z.object({
-        password: z.string(),
+        oldPassword: z.string(),
+        newPassword: z.string(),
         confirmedPassword: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { password, confirmedPassword } = input;
+      const { oldPassword, newPassword, confirmedPassword } = input;
 
       const user = await ctx.db.query.users.findFirst({
         where: (u, { eq }) => eq(u.id, ctx.session.user.id),
       });
 
       if (!user) {
+        return {
+          error: "Unknown server error. Please try again later.",
+          data: null,
+        };
+      }
+
+      if (user.password != oldPassword) {
+        return {
+          error: "Incorrect old password. Please ensure you type it correctly.",
+          data: null,
+        };
       }
     }),
 
