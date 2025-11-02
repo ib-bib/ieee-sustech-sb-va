@@ -118,7 +118,7 @@ export default function ChangePassword() {
                 placeholder="Confirm Password"
                 type={password2Showing ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
               <button
                 onClick={() => setPassword2Showing(!password2Showing)}
