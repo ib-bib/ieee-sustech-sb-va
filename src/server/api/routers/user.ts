@@ -9,6 +9,7 @@ import { users } from "~/server/db/schema";
 import crypto from "crypto";
 import dayjs from "dayjs";
 import nodemailer from "nodemailer";
+import { eq } from "drizzle-orm";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -67,6 +68,34 @@ export const userRouter = createTRPCRouter({
           data: null,
         };
       }
+
+      if (newPassword != confirmedPassword) {
+        return {
+          error:
+            "New password fields don't match. Please ensure you type it correctly twice.",
+          data: null,
+        };
+      }
+
+      const updatedUser = await ctx.db
+        .update(users)
+        .set({
+          password: newPassword,
+        })
+        .where(eq(users.id, ctx.session.user.id))
+        .returning({ name: users.name });
+
+      if (!updatedUser[0]) {
+        return {
+          error: "Server error. Please try again.",
+          data: null,
+        };
+      }
+
+      return {
+        error: null,
+        data: updatedUser[0].name,
+      };
     }),
 
   sendVerificationLink: publicProcedure
