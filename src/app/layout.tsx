@@ -4,11 +4,23 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "IEEE SUSTech Student Branch",
-  description: "Official Volunteer Web Application for the IEEE SUSTech Student Branch",
-  keywords: ['IEEE Sudan University of Science and Technology Student Branch', 'IEEE Sudan University of Science and Technology', 'IEEE SUSTech Student Branch', 'IEEE SUSTech', 'IEEE Student Branch', 'IEEE', 'SUSTech', 'Student', 'Student Branch'],
+  description:
+    "Official Volunteer Web Application for the IEEE SUSTech Student Branch",
+  keywords: [
+    "IEEE Sudan University of Science and Technology Student Branch",
+    "IEEE Sudan University of Science and Technology",
+    "IEEE SUSTech Student Branch",
+    "IEEE SUSTech",
+    "IEEE Student Branch",
+    "IEEE",
+    "SUSTech",
+    "Student",
+    "Student Branch",
+  ],
   icons: [{ rel: "icon", url: "/favicon2.ico" }],
 };
 
@@ -24,7 +36,9 @@ export default function RootLayout({
     <html lang="en" className={`${geist.variable}`}>
       <body className="bg-[url('/background.jpg')]">
         <TRPCReactProvider>{children}</TRPCReactProvider>
+
+        <Toaster closeButton richColors />
       </body>
-    </html >
+    </html>
   );
 }

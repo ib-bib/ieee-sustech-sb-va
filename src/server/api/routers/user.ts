@@ -62,25 +62,29 @@ export const userRouter = createTRPCRouter({
         };
       }
 
-      if (user.password != oldPassword) {
+      const hashedOldPassword = await bcrypt.hash(oldPassword, 10);
+
+      if (user.password != hashedOldPassword) {
         return {
-          error: "Incorrect old password. Please ensure you type it correctly.",
+          error:
+            "Incorrect current password. Please ensure you type it correctly.",
           data: null,
         };
       }
 
-      if (newPassword != confirmedPassword) {
+      if (user.password == newPassword) {
         return {
-          error:
-            "New password fields don't match. Please ensure you type it correctly twice.",
+          error: "New password cannot be the same as the previous one.",
           data: null,
         };
       }
+
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
       const updatedUser = await ctx.db
         .update(users)
         .set({
-          password: newPassword,
+          password: hashedNewPassword,
         })
         .where(eq(users.id, ctx.session.user.id))
         .returning({ name: users.name });
@@ -104,7 +108,21 @@ export const userRouter = createTRPCRouter({
         email: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .query(async ({ ctx, input }) => {
+      const { email } = input;
+
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.email, email),
+      });
+    }),
+
+  sendForgotPasswordLink: publicProcedure
+    .input(
+      z.object({
+        email: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
       const { email } = input;
 
       const user = await ctx.db.query.users.findFirst({

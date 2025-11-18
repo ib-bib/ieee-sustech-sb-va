@@ -46,7 +46,13 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      <div className="flex h-96 w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleLogin();
+        }}
+        className="flex h-96 w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs"
+      >
         <Link href="/" className="w-16 sm:w-18 md:w-20 lg:w-22 xl:w-24">
           <Image
             src="/IEEE-Branch-logo-blue-bg_transparent.png"
@@ -103,16 +109,15 @@ export default function LoginPage() {
           </div>
         </div>
         <button
-          onClick={handleLogin}
           disabled={loading}
           className="flex h-10 w-30 items-center justify-center gap-1 rounded-2xl bg-[#00B5E2] text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:bg-[#002855] disabled:bg-[#002855]"
-          type="button"
+          type="submit"
         >
           {loading && <WhiteSpinner />}
           {validUser && !loading && <CheckIcon className="size-5" />}
           {!loading && !validUser && "Log in"}
         </button>
-      </div>
+      </form>
     </main>
   );
 }

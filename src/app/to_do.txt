@@ -9,7 +9,6 @@ COLORS FOR USE
 - Change password functionality
 - Forgot password functionality
 - Notifications - read/unread functionality
-Login on pressing enter key - event listener
 
 
 https://ui.shadcn.com/docs/components/resizable

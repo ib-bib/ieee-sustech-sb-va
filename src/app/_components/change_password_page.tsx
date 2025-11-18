@@ -5,30 +5,59 @@ import { signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  CheckIcon,
   EyeIcon,
   EyeSlashIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 import WhiteSpinner from "./white_spinner";
+import { toast } from "sonner";
+import { api } from "~/trpc/react";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [oldPassShowing, setOldPassShowing] = useState(false);
   const [password1Showing, setPassword1Showing] = useState(false);
   const [password2Showing, setPassword2Showing] = useState(false);
+  const updatePasswordMutation = api.user.updatePassword.useMutation();
 
   const handlePasswordUpdate = async () => {
-    setLoading(true);
-    /*
-    I need to first click update password
-    */
-
-    if (password != confirmPassword) {
+    let toastErrorId;
+    if (newPassword != confirmedPassword) {
+      toastErrorId = toast.error(
+        "Please ensure typing your new password correctly in both fields.",
+      );
+      return;
     }
+    if (newPassword == oldPassword) {
+      toastErrorId = toast.error(
+        "New password cannot be the same as the previous one.",
+      );
+      return;
+    }
+    setLoading(true);
+    const loadingToastID = toast.loading("Your password is being updated");
+
+    const updateMutationResult = await updatePasswordMutation.mutateAsync({
+      oldPassword,
+      newPassword,
+      confirmedPassword,
+    });
+
+    const username = updateMutationResult.data;
+
+    if (!username) {
+      toast.dismiss(loadingToastID);
+      toast.error(updateMutationResult.error);
+    }
+
+    toast.dismiss(loadingToastID);
+    toast.dismiss(toastErrorId);
+    toast.success(
+      `Your password has been updated, ${username}. You will be signed out momentarily...`,
+    );
 
     await signOut();
 
@@ -37,7 +66,7 @@ export default function ChangePassword() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
-      <div className="flex w-96 flex-col items-center justify-between gap-2 rounded-2xl py-4 shadow-2xl backdrop-blur-xs">
+      <div className="flex w-96 flex-col items-center justify-between gap-4 rounded-2xl py-4 shadow-2xl backdrop-blur-xs">
         <Link href="/" className="w-16 sm:w-18 md:w-20 lg:w-22 xl:w-24">
           <Image
             src="/IEEE-Branch-logo-blue-bg_transparent.png"
@@ -53,13 +82,13 @@ export default function ChangePassword() {
             Update Your Password
           </div>
           <div>
-            <label htmlFor="password">Old Password</label>
+            <label htmlFor="oldPassword">Old Password</label>
             <div className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-300 p-3">
               <LockClosedIcon className="size-5" />
               <input
-                name="password"
+                name="oldPassword"
                 className="outline-none"
-                placeholder="Password"
+                placeholder="Old Password"
                 type={oldPassShowing ? "text" : "password"}
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
@@ -70,9 +99,9 @@ export default function ChangePassword() {
                 className="flex h-6 w-6 items-center justify-center"
               >
                 <span className="sr-only">
-                  {password1Showing ? "Hide password" : "Show password"}
+                  {oldPassShowing ? "Hide password" : "Show password"}
                 </span>
-                {password1Showing ? (
+                {oldPassShowing ? (
                   <EyeIcon className="h-5 w-5" />
                 ) : (
                   <EyeSlashIcon className="h-5 w-5" />
@@ -81,16 +110,16 @@ export default function ChangePassword() {
             </div>
           </div>
           <div>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="newPassword">Password</label>
             <div className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-300 p-3">
               <LockClosedIcon className="size-5" />
               <input
-                name="password"
+                name="newPassword"
                 className="outline-none"
-                placeholder="Password"
+                placeholder="New Password"
                 type={password1Showing ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
               />
               <button
                 onClick={() => setPassword1Showing(!password1Showing)}
@@ -117,8 +146,8 @@ export default function ChangePassword() {
                 className="outline-none"
                 placeholder="Confirm Password"
                 type={password2Showing ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={confirmedPassword}
+                onChange={(e) => setConfirmedPassword(e.target.value)}
               />
               <button
                 onClick={() => setPassword2Showing(!password2Showing)}
@@ -144,12 +173,7 @@ export default function ChangePassword() {
           type="button"
         >
           {loading && <WhiteSpinner />}
-          {password == confirmPassword && password != "" && !loading && (
-            <CheckIcon className="size-5" />
-          )}
-          {!loading &&
-            (password == "" || confirmPassword == "") &&
-            "Update Password"}
+          {!loading && "Update Password"}
         </button>
       </div>
     </main>
