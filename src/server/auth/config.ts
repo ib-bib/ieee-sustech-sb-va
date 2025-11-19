@@ -81,9 +81,7 @@ export const authConfig = {
 
         const isValidPassword = await bcrypt.compare(password, user.password);
 
-        if (!isValidPassword) {
-          throw new Error("Incorrect password");
-        }
+        if (!isValidPassword) return null;
 
         return {
           id: user.id,
