@@ -10,6 +10,7 @@ import crypto from "crypto";
 import dayjs from "dayjs";
 import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -45,38 +46,44 @@ export const userRouter = createTRPCRouter({
       z.object({
         oldPassword: z.string(),
         newPassword: z.string(),
-        confirmedPassword: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { oldPassword, newPassword, confirmedPassword } = input;
+      const { oldPassword, newPassword } = input;
 
       const user = await ctx.db.query.users.findFirst({
         where: (u, { eq }) => eq(u.id, ctx.session.user.id),
       });
 
       if (!user) {
-        return {
-          error: "Unknown server error. Please try again later.",
-          data: null,
-        };
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unknown server error. Please try again later.",
+        });
       }
 
-      const hashedOldPassword = await bcrypt.hash(oldPassword, 10);
+      const isOldPasswordCorrect = await bcrypt.compare(
+        oldPassword,
+        user.password,
+      );
 
-      if (user.password != hashedOldPassword) {
-        return {
-          error:
-            "Incorrect current password. Please ensure you type it correctly.",
-          data: null,
-        };
+      if (!isOldPasswordCorrect) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Incorrect current password.",
+        });
       }
 
-      if (user.password == newPassword) {
-        return {
-          error: "New password cannot be the same as the previous one.",
-          data: null,
-        };
+      const newPassIsSameAsOld = await bcrypt.compare(
+        newPassword,
+        user.password,
+      );
+
+      if (newPassIsSameAsOld) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "New password cannot be the same as the previous one.",
+        });
       }
 
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
@@ -90,16 +97,13 @@ export const userRouter = createTRPCRouter({
         .returning({ name: users.name });
 
       if (!updatedUser[0]) {
-        return {
-          error: "Server error. Please try again.",
-          data: null,
-        };
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Server error. Please try again.",
+        });
       }
 
-      return {
-        error: null,
-        data: updatedUser[0].name,
-      };
+      return updatedUser[0].name;
     }),
 
   sendVerificationLink: publicProcedure

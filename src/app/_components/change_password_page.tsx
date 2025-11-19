@@ -31,35 +31,29 @@ export default function ChangePassword() {
       );
       return;
     }
+
     if (newPassword == oldPassword) {
       toastErrorId = toast.error(
         "New password cannot be the same as the previous one.",
       );
       return;
     }
+
     setLoading(true);
     const loadingToastID = toast.loading("Your password is being updated");
 
-    const updateMutationResult = await updatePasswordMutation.mutateAsync({
-      oldPassword,
-      newPassword,
-      confirmedPassword,
-    });
-
-    const username = updateMutationResult.data;
-
-    if (!username) {
+    try {
+      const username = await updatePasswordMutation.mutateAsync({
+        oldPassword,
+        newPassword,
+      });
       toast.dismiss(loadingToastID);
-      toast.error(updateMutationResult.error);
+      toast.success(`Password updated, ${username}. Signing out...`);
+      await signOut();
+    } catch (err: any) {
+      toast.dismiss(loadingToastID);
+      toast.error(err.message);
     }
-
-    toast.dismiss(loadingToastID);
-    toast.dismiss(toastErrorId);
-    toast.success(
-      `Your password has been updated, ${username}. You will be signed out momentarily...`,
-    );
-
-    await signOut();
 
     setLoading(false);
   };

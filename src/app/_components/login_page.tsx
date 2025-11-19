@@ -14,6 +14,7 @@ import { signIn } from "next-auth/react";
 
 import WhiteSpinner from "~/app/_components/white_spinner";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,13 +36,17 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (res?.ok) {
-      setValidUser(true);
-      router.push("/");
-    } else {
-      alert("Login failed");
+    if (!res || !res.ok) {
+      toast.error(
+        res?.error || "Incorrect email or password. Please try again",
+      );
+      setValidUser(false);
+      return;
     }
+
     setValidUser(true);
+    toast.success("Login successful");
+    router.push("/");
   };
 
   return (
@@ -109,7 +114,7 @@ export default function LoginPage() {
           </div>
         </div>
         <button
-          disabled={loading}
+          disabled={loading || !email || !password}
           className="flex h-10 w-30 items-center justify-center gap-1 rounded-2xl bg-[#00B5E2] text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:bg-[#002855] disabled:bg-[#002855]"
           type="submit"
         >
