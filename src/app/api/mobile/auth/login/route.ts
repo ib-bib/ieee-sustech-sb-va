@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Mobile login API error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred." },
+      { error: "An unexpected error occurred. Please try again later." },
       { status: 500 },
     );
   }

@@ -6,7 +6,6 @@ COLORS FOR USE
 #007377
 #002855
 
-- Change password functionality
 - Forgot password functionality
 - Notifications - read/unread functionality
 
