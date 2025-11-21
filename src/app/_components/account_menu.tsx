@@ -5,6 +5,7 @@ import {
   UserIcon,
   ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,7 +14,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 
-export function AccountMenu() {
+export function AccountMenu({ username }: { username: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -24,9 +25,7 @@ export function AccountMenu() {
       <PopoverContent className="w-70">
         <div className="grid gap-4">
           <div className="space-y-2">
-            <h4 className="text-center leading-none font-medium">
-              Ibrahim Adil
-            </h4>
+            <h4 className="text-center leading-none font-medium">{username}</h4>
           </div>
           <div className="grid gap-2">
             <Button className="flex items-center justify-between bg-neutral-200 px-8 text-black transition-all hover:cursor-pointer hover:bg-neutral-300 active:scale-95">
@@ -34,7 +33,12 @@ export function AccountMenu() {
               <Link href="/change_password">Change Password</Link>
               <div className="invisible size-6" />
             </Button>
-            <Button className="flex items-center justify-between bg-neutral-900 px-8 transition-all hover:cursor-pointer hover:bg-black active:scale-95">
+            <Button
+              onClick={async () => {
+                await signOut();
+              }}
+              className="flex items-center justify-between bg-neutral-900 px-8 transition-all hover:cursor-pointer hover:bg-black active:scale-95"
+            >
               <ArrowRightStartOnRectangleIcon className="size-6" />
               <span>Log Out</span>
               <div className="invisible size-6" />
