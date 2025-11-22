@@ -122,6 +122,14 @@ export default function LoginPage() {
           {validUser && !loading && <CheckIcon className="size-5" />}
           {!loading && !validUser && "Log in"}
         </button>
+        <div className="flex w-full items-center justify-center py-2">
+          <Link
+            href="/forgot_password"
+            className="underline decoration-[#00629B]"
+          >
+            Forgot Password ?
+          </Link>
+        </div>
       </form>
     </main>
   );

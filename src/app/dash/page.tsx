@@ -11,6 +11,8 @@ import { redirect } from "next/navigation";
 export default async function Dash() {
   const session = await auth();
 
+  if (!session) redirect("/");
+
   return (
     <main className="flex h-full min-h-screen w-full flex-col">
       <nav className="itesm-center flex h-13 w-full justify-between bg-blue-700 px-4">
