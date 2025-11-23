@@ -6,10 +6,12 @@ COLORS FOR USE
 #007377
 #002855
 
+https://brand-experience.ieee.org/guidelines/digital/style-guide/branding-visual-elements/
+
+To be implemented:
 - Forgot password functionality
+(Backend: if user is verified then OTP will guide to forgot password)
 - Notifications - read/unread functionality
-
-
-https://ui.shadcn.com/docs/components/resizable
-
-https://ui.shadcn.com/docs/components/select
+- Semantic HTML
+- Set Colors as Variables
+- Animations

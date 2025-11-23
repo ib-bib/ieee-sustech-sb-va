@@ -56,7 +56,7 @@ export default function LoginPage() {
           e.preventDefault();
           handleLogin();
         }}
-        className="flex h-96 w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs"
+        className="flex h-[26rem] w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs"
       >
         <Link href="/" className="w-16 sm:w-18 md:w-20 lg:w-22 xl:w-24">
           <Image
@@ -115,7 +115,7 @@ export default function LoginPage() {
         </div>
         <button
           disabled={loading || !email || !password}
-          className="flex h-10 w-30 items-center justify-center gap-1 rounded-2xl bg-[#00B5E2] text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:bg-[#002855] disabled:bg-[#002855]"
+          className="flex h-10 w-30 items-center justify-center gap-1 rounded-2xl bg-[#00B5E2] text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:bg-[#002855] disabled:cursor-not-allowed disabled:hover:bg-[#00B5E2] disabled:active:scale-100 disabled:active:bg-[#00B5E2]"
           type="submit"
         >
           {loading && <WhiteSpinner />}
@@ -127,7 +127,7 @@ export default function LoginPage() {
             href="/forgot_password"
             className="underline decoration-[#00629B]"
           >
-            Forgot Password ?
+            Forgot Password?
           </Link>
         </div>
       </form>

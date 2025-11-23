@@ -47,6 +47,7 @@ export const users = createTable("user", (d) => ({
   image: d.varchar({ length: 255 }),
   teamId: d.integer().references(() => teams.id),
   roleId: d.integer().references(() => roles.id),
+  is_verified: d.boolean().default(false),
 }));
 
 export const usersRelations = relations(users, ({ many, one }) => ({
