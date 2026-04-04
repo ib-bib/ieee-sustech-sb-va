@@ -5,12 +5,13 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import bcrypt from "bcryptjs";
-import { users } from "~/server/db/schema";
-import crypto from "crypto";
+import { passwordResetTokens, users } from "~/server/db/schema";
+import { nanoid } from "nanoid";
 import dayjs from "dayjs";
 import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { env } from "~/env";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -120,7 +121,7 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
-  sendForgotPasswordLink: publicProcedure
+  sendForgotPasswordOTP: publicProcedure
     .input(
       z.object({
         email: z.string(),
@@ -132,5 +133,70 @@ export const userRouter = createTRPCRouter({
       const user = await ctx.db.query.users.findFirst({
         where: (u, { eq }) => eq(u.email, email),
       });
+
+      if (!user)
+        return {
+          error: true,
+          message: "User Not Registered: " + email,
+        };
+
+      const token = 123456;
+
+      const otps = await ctx.db.insert(passwordResetTokens).values({
+        userId: user.id,
+        tokenCode: String(token),
+      });
+
+      const transporter = nodemailer.createTransport({
+        host: "smtp.google.com",
+        port: 465,
+        service: "gmail",
+        auth: {
+          user: env.EMAIL_ADDRESS,
+          pass: env.EMAIL_PASS,
+        },
+        // auth: {
+        //   type: "OAuth2",
+        //   user: "me@gmail.com",
+        //   clientId: process.env.GOOGLE_CLIENT_ID,
+        //   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        //   refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        // },
+      });
+
+      try {
+        await transporter.verify();
+        console.log("Google Email Service is ready to take our messages");
+      } catch (err) {
+        console.error("Could Not Connect To Google Email Service", err);
+        return {
+          error: true,
+          message: err,
+        };
+      }
+
+      try {
+        const info = await transporter.sendMail({
+          from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`, // sender address
+          to: email, // list of recipients
+          subject: "Hello", // subject line
+          text: "Your OTP is as follows: " + token, // plain text body
+          html: `Your OTP is as follows: <b>${token}</b>`, // HTML body
+        });
+
+        console.log("Message sent: %s", info.messageId);
+        // Preview URL is only available when using an Ethereal test account
+
+        return {
+          error: false,
+          message: "Successfully sent message",
+        };
+      } catch (err) {
+        console.error("Error while sending mail:", err);
+        return {
+          error: true,
+          message: err,
+        };
+      }
     }),
 });
