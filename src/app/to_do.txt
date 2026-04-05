@@ -9,9 +9,6 @@ COLORS FOR USE
 https://brand-experience.ieee.org/guidelines/digital/style-guide/branding-visual-elements/
 
 To be implemented:
-- Forgot password functionality
-(Backend: if user is verified then OTP will guide to forgot password)
-- Notifications - read/unread functionality
 - Semantic HTML
 - Set Colors as Variables
 - Custom 404 Page
