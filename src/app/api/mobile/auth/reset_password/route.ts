@@ -6,14 +6,15 @@ import { authenticateMobileRequest } from "~/server/api/middleware/mobile_auth";
 import { users } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
-const UpdatePasswordScheme = z.object({
-  oldPassword: z.string(),
-  newPassword: z.string(),
+const ResetPasswordScheme = z.object({
+  newPassword: z
+    .string()
+    .min(6, "Password must be at least 6 characters long."),
 });
 
 export async function POST(req: NextRequest) {
   const { user: authenticatedUser, response } =
-    await authenticateMobileRequest(req); // naming authenticatedUser to avoid confusions down in the code
+    await authenticateMobileRequest(req);
 
   if (response) {
     return response; // unauthorized
@@ -31,12 +32,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = (await req.json()) as unknown;
-    const validationResult = UpdatePasswordScheme.safeParse(body);
+    const validationResult = ResetPasswordScheme.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(
         {
-          error: "Invalid request body" + validationResult.error.errors,
+          error: "Invalid request body",
+          details: validationResult.error.errors,
           value: null,
         },
         { status: 400 },
@@ -57,44 +59,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userPasswordFromDB = userRecord.password;
+    const { newPassword } = validationResult.data;
 
-    const { oldPassword, newPassword } = validationResult.data;
-
-    const isOldPasswordCorrect = await bcrypt.compare(
-      oldPassword,
-      userPasswordFromDB,
-    );
-
-    if (!isOldPasswordCorrect) {
-      return NextResponse.json(
-        {
-          error: "Incorrect current password.",
-          value: null,
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    const newPassIsSameAsOld = await bcrypt.compare(
-      newPassword,
-      userPasswordFromDB,
-    );
-
-    if (newPassIsSameAsOld) {
-      return NextResponse.json(
-        {
-          error: "New password cannot be the same as the previous one.",
-          value: null,
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
+    // For password reset, we don't check if new password is same as old
+    // since user might not remember their old password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
     const updatedUser = await db
@@ -111,7 +79,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Unknown server error. Could not update password. Please try again",
+            "Unknown server error. Could not reset password. Please try again",
           value: null,
         },
         { status: 500 },
@@ -122,12 +90,12 @@ export async function POST(req: NextRequest) {
       {
         error: null,
         value: updatedUser,
-        message: "password updated successfully",
+        message: "Password reset successfully",
       },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Mobile update password API error: ", error);
+    console.error("Mobile reset password API error: ", error);
     return NextResponse.json(
       {
         error: "An unexpected error occurred. Please try again later.",

@@ -6,12 +6,13 @@ import {
 } from "~/server/api/trpc";
 import bcrypt from "bcryptjs";
 import { passwordResetTokens, users } from "~/server/db/schema";
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
 import dayjs from "dayjs";
 import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
+import { signIn } from "~/server/auth";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -107,6 +108,58 @@ export const userRouter = createTRPCRouter({
       return updatedUser[0].name;
     }),
 
+  resetPassword: protectedProcedure
+    .input(
+      z.object({
+        newPassword: z.string().min(6),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { newPassword } = input;
+
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, ctx.session.user.id),
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unknown server error. Please try again later.",
+        });
+      }
+
+      const newPassIsSameAsOld = await bcrypt.compare(
+        newPassword,
+        user.password,
+      );
+
+      if (newPassIsSameAsOld) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "New password cannot be the same as the previous one.",
+        });
+      }
+
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      const updatedUser = await ctx.db
+        .update(users)
+        .set({
+          password: hashedNewPassword,
+        })
+        .where(eq(users.id, ctx.session.user.id))
+        .returning({ name: users.name });
+
+      if (!updatedUser[0]) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Server error. Please try again.",
+        });
+      }
+
+      return updatedUser[0].name;
+    }),
+
   sendVerificationLink: publicProcedure
     .input(
       z.object({
@@ -127,7 +180,7 @@ export const userRouter = createTRPCRouter({
         email: z.string(),
       }),
     )
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { email } = input;
 
       const user = await ctx.db.query.users.findFirst({
@@ -140,12 +193,22 @@ export const userRouter = createTRPCRouter({
           message: "User Not Registered: " + email,
         };
 
-      const token = 123456;
+      const token = customAlphabet("0123456789", 6)();
 
-      const otps = await ctx.db.insert(passwordResetTokens).values({
-        userId: user.id,
-        tokenCode: String(token),
-      });
+      const otps = await ctx.db
+        .insert(passwordResetTokens)
+        .values({
+          userId: user.id,
+          tokenCode: token,
+        })
+        .returning();
+
+      if (!otps) {
+        return {
+          error: true,
+          message: "Error while generating OTP. Please try again.",
+        };
+      }
 
       const transporter = nodemailer.createTransport({
         host: "smtp.google.com",
@@ -179,7 +242,7 @@ export const userRouter = createTRPCRouter({
         const info = await transporter.sendMail({
           from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`, // sender address
           to: email, // list of recipients
-          subject: "Hello", // subject line
+          subject: "One-Time Passcode to update your password", // subject line
           text: "Your OTP is as follows: " + token, // plain text body
           html: `Your OTP is as follows: <b>${token}</b>`, // HTML body
         });

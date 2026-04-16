@@ -6,8 +6,10 @@ import { z } from "zod";
 import { env } from "~/env";
 
 import { db } from "~/server/db";
+import { eq } from "drizzle-orm";
 import {
   accounts,
+  passwordResetTokens,
   sessions,
   users,
   verificationTokens,
@@ -46,7 +48,8 @@ export const authConfig = {
   },
   providers: [
     Credentials({
-      name: "Credentials",
+      id: "default-credentials",
+      name: "Password Login",
       credentials: {
         email: {
           label: "Email",
@@ -82,6 +85,75 @@ export const authConfig = {
         const isValidPassword = await bcrypt.compare(password, user.password);
 
         if (!isValidPassword) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        };
+      },
+    }),
+    Credentials({
+      id: "otp-credentials",
+      name: "OTP Login",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "email",
+          placeholder: "name@example.com",
+        },
+        otp: {
+          label: "One-Time Password",
+          type: "text",
+          placeholder: "123456",
+        },
+      },
+      authorize: async (credentials) => {
+        const parsedCredentials = z
+          .object({ email: z.string().email(), otp: z.string().min(6) })
+          .safeParse(credentials);
+
+        if (!parsedCredentials.success) {
+          throw new Error(
+            "Invalid input. Please provide a valid email and OTP (min 6 characters).",
+          );
+        }
+
+        const { email, otp } = parsedCredentials.data;
+
+        const user = await db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.email, email),
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        const now = new Date();
+
+        const validToken = await db.query.passwordResetTokens.findMany({
+          where: (t, { eq, and, gt }) =>
+            and(
+              eq(t.tokenCode, otp),
+              eq(t.userId, user.id),
+              gt(t.expiresAt, now),
+            ),
+          orderBy: (t, { desc }) => desc(t.createdAt),
+          limit: 1,
+        });
+
+        if (!validToken[0]) throw new Error("Invalid or expired OTP");
+
+        const updatedToken = await db
+          .update(passwordResetTokens)
+          .set({
+            expiresAt: now,
+          })
+          .where(eq(passwordResetTokens.id, validToken[0].id))
+          .returning();
+
+        if (!updatedToken)
+          throw new Error("Unknown server error. Please try again.");
 
         return {
           id: user.id,

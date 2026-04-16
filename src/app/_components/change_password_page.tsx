@@ -163,7 +163,7 @@ export default function ChangePassword() {
         <button
           onClick={handlePasswordUpdate}
           disabled={loading}
-          className="flex h-14 w-50 items-center justify-center gap-2 rounded-2xl bg-[#00B5E2] p-2 text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:scale-90 active:bg-[#002855] disabled:bg-[#002855]"
+          className="flex h-14 w-50 items-center justify-center gap-2 rounded-2xl bg-[#00B5E2] p-2 text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:scale-90 active:bg-[#004D7A] disabled:bg-[#B3E5F2]"
           type="button"
         >
           {loading && <WhiteSpinner />}
