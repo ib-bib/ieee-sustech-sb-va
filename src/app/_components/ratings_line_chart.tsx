@@ -24,18 +24,16 @@ type ChartEntry = {
   rating: number;
 };
 
-type ChartData = {
-  [year: string]: ChartEntry[];
-};
+type ChartData = Record<string, ChartEntry[]>;
 
 export function ChartLineLinear({
   years,
   ratings,
 }: {
-  years: any[];
+  years: { value: string; label: string }[];
   ratings: ChartData;
 }) {
-  const [selectedYear, setSelectedYear] = useState(years[0].value);
+  const [selectedYear, setSelectedYear] = useState(years[0]!.value);
 
   const chartData: ChartData = ratings;
 
@@ -74,7 +72,9 @@ export function ChartLineLinear({
               tickLine={false}
               axisLine={false}
               tickMargin={1}
-              tickFormatter={(value) => value.slice(0, 3)}
+              tickFormatter={(value: string | number) =>
+                String(value).slice(0, 3)
+              }
             />
             <ChartTooltip
               cursor={false}

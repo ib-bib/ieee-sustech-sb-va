@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
-import { passwordResetTokens, users } from "~/server/db/schema";
+import { passwordResetTokens } from "~/server/db/schema";
 import { customAlphabet } from "nanoid";
 import nodemailer from "nodemailer";
 import { env } from "~/env";
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       where: (u, { eq }) => eq(u.email, email),
     });
 
-    if (!user || !user.is_verified) {
+    if (!user?.is_verified) {
       return NextResponse.json(
         {
           error: "User not found or not verified.",

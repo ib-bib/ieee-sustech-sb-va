@@ -1,11 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { env } from "~/env";
-import { passwordResetTokens, users } from "~/server/db/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { passwordResetTokens } from "~/server/db/schema";
+import { eq } from "drizzle-orm";
 
 const ValidateOtpSchema = z.object({
   email: z.string().email("Invalid email format."),

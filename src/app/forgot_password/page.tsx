@@ -39,11 +39,9 @@ export default function ForgotPassword() {
 
       toast.success("OTP sent. Check your email and enter the code below.");
       setStep("verify");
-    } catch (error: any) {
+    } catch {
       toast.dismiss(toastId);
-      toast.error(
-        error?.message || "Unable to send OTP. Please try again later.",
-      );
+      toast.error("Unable to send OTP. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -66,16 +64,16 @@ export default function ForgotPassword() {
       });
       toast.dismiss(toastId);
 
-      if (!response || !response.ok) {
-        toast.error(response?.error || "Invalid or expired OTP.");
+      if (!response?.ok) {
+        toast.error("Invalid or expired OTP.");
         return;
       }
 
       toast.success("OTP verified. Redirecting to reset password...");
       router.push("/reset_password");
-    } catch (error: any) {
+    } catch {
       toast.dismiss(toastId);
-      toast.error(error?.message || "Unable to verify OTP.");
+      toast.error("Unable to verify OTP.");
     } finally {
       setLoading(false);
     }

@@ -19,9 +19,7 @@ type ChartEntry = {
   rating: number;
 };
 
-type ChartData = {
-  [year: string]: ChartEntry[];
-};
+type ChartData = Record<string, ChartEntry[]>;
 
 function getMonthName(monthNumber: number, locale = "en-US") {
   // Create a Date object. The day and year don't matter, only the month.
@@ -56,9 +54,7 @@ export default async function RatingsCard() {
     ratingsHistory.value?.reduce<ChartData>((acc, record) => {
       const year = String(record.year);
 
-      if (!acc[year]) {
-        acc[year] = [];
-      }
+      acc[year] ??= [];
 
       acc[year].push({
         month: getMonthName(record.month!).substring(0, 3),
@@ -76,7 +72,7 @@ export default async function RatingsCard() {
             <h3 className="w-full text-center font-bold">Your Ratings</h3>
             <div className="flex w-full flex-col items-center justify-center gap-6">
               <div className="flex w-full flex-col items-center gap-1">
-                <p>Last month's rating</p>
+                <p>Last month&apos;s rating</p>
                 <div className="relative size-28">
                   <svg
                     className="size-full -rotate-90"
@@ -172,7 +168,7 @@ export default async function RatingsCard() {
               <Card className="flex grow flex-col">
                 <CardContent className="flex flex-col gap-8 pr-2">
                   <div className="flex w-full flex-col items-center gap-1">
-                    <p className="font-bold">Last month's rating</p>
+                    <p className="font-bold">Last month&apos;s rating</p>
                     <div className="relative flex size-40 w-full items-center justify-center">
                       <svg
                         className="size-full -rotate-90"

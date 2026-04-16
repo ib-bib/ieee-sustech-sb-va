@@ -21,12 +21,12 @@ import {
 export const description = "A linear line chart";
 
 const chartData = [
-  { month: "January", rating: 186 },
-  { month: "February", rating: 305 },
-  { month: "March", rating: 237 },
+  { month: "January", rating: 86 },
+  { month: "February", rating: 35 },
+  { month: "March", rating: 37 },
   { month: "April", rating: 73 },
-  { month: "May", rating: 209 },
-  { month: "June", rating: 214 },
+  { month: "May", rating: 29 },
+  { month: "June", rating: 24 },
 ];
 
 const chartConfig = {
@@ -59,7 +59,7 @@ export function ChartLineLinear() {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
+              tickFormatter={(value: string) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}

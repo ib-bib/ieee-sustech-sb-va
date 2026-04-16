@@ -7,12 +7,10 @@ import {
 import bcrypt from "bcryptjs";
 import { passwordResetTokens, users } from "~/server/db/schema";
 import { customAlphabet } from "nanoid";
-import dayjs from "dayjs";
 import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
-import { signIn } from "~/server/auth";
 
 export const userRouter = createTRPCRouter({
   create: publicProcedure
@@ -160,20 +158,6 @@ export const userRouter = createTRPCRouter({
       return updatedUser[0].name;
     }),
 
-  sendVerificationLink: publicProcedure
-    .input(
-      z.object({
-        email: z.string(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { email } = input;
-
-      const user = await ctx.db.query.users.findFirst({
-        where: (u, { eq }) => eq(u.email, email),
-      });
-    }),
-
   sendForgotPasswordOTP: publicProcedure
     .input(
       z.object({
@@ -187,7 +171,7 @@ export const userRouter = createTRPCRouter({
         where: (u, { eq }) => eq(u.email, email),
       });
 
-      if (!user || !user.is_verified)
+      if (!user?.is_verified)
         return {
           error: true,
           message: "User Not Registered: " + email,

@@ -36,10 +36,8 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (!res || !res.ok) {
-      toast.error(
-        res?.error || "Incorrect email or password. Please try again",
-      );
+    if (!res?.ok) {
+      toast.error("Incorrect email or password. Please try again");
       setValidUser(false);
       return;
     }
@@ -52,9 +50,9 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          handleLogin();
+          await handleLogin();
         }}
         className="flex h-[26rem] w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs"
       >

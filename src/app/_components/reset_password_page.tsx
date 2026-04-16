@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import WhiteSpinner from "~/app/_components/white_spinner";
 import { api } from "~/trpc/react";
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -35,17 +31,15 @@ export default function ResetPasswordPage() {
     const loadingToastId = toast.loading("Updating your password...");
 
     try {
-      const name = await resetPasswordMutation.mutateAsync({
+      await resetPasswordMutation.mutateAsync({
         newPassword,
       });
       toast.dismiss(loadingToastId);
       toast.success("Password updated successfully. Signing in...");
       router.push("/dash");
-    } catch (error: any) {
+    } catch {
       toast.dismiss(loadingToastId);
-      toast.error(
-        error?.message || "Unable to reset password. Please try again.",
-      );
+      toast.error("Unable to reset password. Please try again.");
     } finally {
       setLoading(false);
     }

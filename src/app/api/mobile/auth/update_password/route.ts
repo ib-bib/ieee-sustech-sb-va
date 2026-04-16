@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "~/server/db";
@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
     if (!validationResult.success) {
       return NextResponse.json(
         {
-          error: "Invalid request body" + validationResult.error.errors,
+          error: "Invalid request body",
+          details: validationResult.error.errors,
           value: null,
         },
         { status: 400 },

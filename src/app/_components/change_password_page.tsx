@@ -24,18 +24,15 @@ export default function ChangePassword() {
   const updatePasswordMutation = api.user.updatePassword.useMutation();
 
   const handlePasswordUpdate = async () => {
-    let toastErrorId;
     if (newPassword != confirmedPassword) {
-      toastErrorId = toast.error(
+      toast.error(
         "Please ensure typing your new password correctly in both fields.",
       );
       return;
     }
 
     if (newPassword == oldPassword) {
-      toastErrorId = toast.error(
-        "New password cannot be the same as the previous one.",
-      );
+      toast.error("New password cannot be the same as the previous one.");
       return;
     }
 
@@ -50,9 +47,9 @@ export default function ChangePassword() {
       toast.dismiss(loadingToastID);
       toast.success(`Password updated, ${username}. Signing out...`);
       await signOut();
-    } catch (err: any) {
+    } catch {
       toast.dismiss(loadingToastID);
-      toast.error(err.message);
+      toast.error("Failed to update password. Please try again");
     }
 
     setLoading(false);
