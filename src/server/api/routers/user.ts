@@ -18,11 +18,10 @@ export const userRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         email: z.string().email(),
-        password: z.string().min(6),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { name, email, password } = input;
+      const { name, email } = input;
 
       const existingUser = await ctx.db.query.users.findFirst({
         where: (users, { eq }) => eq(users.email, email),
@@ -32,7 +31,58 @@ export const userRouter = createTRPCRouter({
         throw new Error("User with this email already exists.");
       }
 
+      const password = customAlphabet(
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+        10,
+      )();
+
       const hashedPassword = await bcrypt.hash(password, 10);
+
+      const transporter = nodemailer.createTransport({
+        host: "smtp.google.com",
+        port: 465,
+        service: "gmail",
+        auth: {
+          user: env.EMAIL_ADDRESS,
+          pass: env.EMAIL_PASS,
+        },
+        // auth: {
+        //   type: "OAuth2",
+        //   user: "me@gmail.com",
+        //   clientId: process.env.GOOGLE_CLIENT_ID,
+        //   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        //   refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+        // },
+      });
+
+      try {
+        await transporter.verify();
+        console.log("Google Email Service is ready to take our messages");
+      } catch (err) {
+        console.error("Could Not Connect To Google Email Service", err);
+        return {
+          error: true,
+          message: err,
+        };
+      }
+
+      try {
+        const info = await transporter.sendMail({
+          from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`, // sender address
+          to: email, // recipient
+          subject: "Volunteer Platform Credentials",
+          text: `Welcome! Your account has been created\nPlease use the following credentials to login, then change your password\nPassword: ${password}`,
+          html: `Welcome! Your account has been created<br />Please use the following credentials to login, then change your password<br /><b>Password: ${password}</b>`, // HTML body
+        });
+
+        console.log("Message sent: %s", info.messageId);
+      } catch (err) {
+        console.error("Error while sending mail:", err);
+        return {
+          error: true,
+          message: err,
+        };
+      }
 
       return ctx.db.insert(users).values({
         name,
@@ -232,7 +282,6 @@ export const userRouter = createTRPCRouter({
         });
 
         console.log("Message sent: %s", info.messageId);
-        // Preview URL is only available when using an Ethereal test account
 
         return {
           error: false,
