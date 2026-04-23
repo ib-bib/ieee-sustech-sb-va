@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       where: (u, { eq }) => eq(u.email, email),
     });
 
-    if (!user?.is_verified) {
+    if (!user?.isVerified) {
       return NextResponse.json(
         {
           error: "User not found or not verified.",

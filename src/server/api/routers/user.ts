@@ -171,7 +171,7 @@ export const userRouter = createTRPCRouter({
         where: (u, { eq }) => eq(u.email, email),
       });
 
-      if (!user?.is_verified)
+      if (!user?.isVerified)
         return {
           error: true,
           message: "User Not Registered: " + email,

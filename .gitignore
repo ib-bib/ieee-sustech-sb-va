@@ -47,3 +47,5 @@ yarn-error.log*
 
 # vs code files
 .vscode/
+
+credentials.json

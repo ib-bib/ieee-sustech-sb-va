@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userRecord = await db.query.users.findFirst({
-      where: (t, { eq }) => eq(t.id, authenticatedUser.id),
+      where: (t, { eq }) => eq(t.email, authenticatedUser.email),
     });
 
     if (!userRecord) {
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       .set({
         password: hashedNewPassword,
       })
-      .where(eq(users.id, authenticatedUser.id))
+      .where(eq(users.email, authenticatedUser.email))
       .returning({
         name: users.name,
       });

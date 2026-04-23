@@ -8,7 +8,7 @@ COLORS FOR USE
 
 https://brand-experience.ieee.org/guidelines/digital/style-guide/branding-visual-elements/
 
-To be implemented:
+To be implemented in the end:
 - Semantic HTML
 - Set Colors as Variables
 - Custom 404 Page

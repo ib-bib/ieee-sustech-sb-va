@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(
     {
       message: `Hello ${user?.name ?? user?.email}! This is protected data for mobile.`,
-      userId: user?.id,
       timestamp: new Date().toISOString(),
     },
     { status: 200 },

@@ -4,7 +4,6 @@ import { db } from "~/server/db";
 import { env } from "~/env";
 
 interface AuthenticatedUser {
-  id: string;
   email: string;
   name?: string | null;
 }
@@ -67,7 +66,7 @@ export async function authenticateMobileRequest(req: NextRequest): Promise<{
     }
 
     const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, decoded.id),
+      where: (users, { eq }) => eq(users.email, decoded.email),
     });
 
     if (!user) {

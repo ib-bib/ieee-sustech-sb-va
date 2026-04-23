@@ -6,6 +6,8 @@ export const createTable = pgTableCreator(
   (name) => `ieee-sustech-sb-va_${name}`,
 );
 
+// TABLES
+
 export const posts = createTable(
   "post",
   (d) => ({
@@ -36,8 +38,10 @@ export const users = createTable("user", (d) => ({
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: d.varchar({ length: 255 }),
-  email: d.varchar({ length: 255 }).notNull(),
+  email: d.varchar({ length: 255 }).notNull().unique(),
+  meetingsEmail: d.varchar({ length: 255 }).unique(),
   password: d.varchar({ length: 255 }).notNull(),
+  phone: d.varchar({ length: 15 }),
   emailVerified: d
     .timestamp({
       mode: "date",
@@ -47,22 +51,8 @@ export const users = createTable("user", (d) => ({
   image: d.varchar({ length: 255 }),
   teamId: d.integer().references(() => teams.id),
   roleId: d.integer().references(() => roles.id),
-  is_verified: d.boolean().default(false),
-}));
-
-export const usersRelations = relations(users, ({ many, one }) => ({
-  accounts: many(accounts),
-  flags: many(flags),
-  posts: many(posts),
-  sessions: many(sessions),
-  ratings: many(ratings),
-  conditionFulfillments: many(conditionFulfillments),
-  team: one(teams),
-  role: one(roles),
-  suspensions: many(userSuspensions),
-  notifications: many(notifications),
-  eventParticipations: many(eventParticipations),
-  coordinatedEvents: many(events),
+  isVerified: d.boolean("is_verified").default(false),
+  isActive: d.boolean("is_active").default(true),
 }));
 
 export const userSuspensions = createTable("user_suspension", (d) => ({
@@ -84,20 +74,9 @@ export const userSuspensions = createTable("user_suspension", (d) => ({
     .references(() => users.id),
 }));
 
-export const userSuspensionsRelations = relations(
-  userSuspensions,
-  ({ one }) => ({
-    user: one(users),
-  }),
-);
-
 export const roles = createTable("role", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  name: d.varchar({ length: 255 }),
-}));
-
-export const userRolesRelations = relations(roles, ({ many }) => ({
-  users: many(users),
+  name: d.varchar({ length: 255 }).unique(),
 }));
 
 export const accounts = createTable(
@@ -128,10 +107,6 @@ export const accounts = createTable(
   ],
 );
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
-}));
-
 export const sessions = createTable(
   "session",
   (d) => ({
@@ -143,20 +118,6 @@ export const sessions = createTable(
     expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
   }),
   (t) => [index("t_user_id_idx").on(t.userId)],
-);
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
-}));
-
-export const verificationTokens = createTable(
-  "verification_token",
-  (d) => ({
-    identifier: d.varchar({ length: 255 }).notNull(),
-    token: d.varchar({ length: 255 }).notNull(),
-    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
-  }),
-  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
 
 export const flags = createTable("flag", (d) => ({
@@ -176,10 +137,6 @@ export const flags = createTable("flag", (d) => ({
     .varchar({ length: 255 })
     .notNull()
     .references(() => users.id),
-}));
-
-export const flagsRelations = relations(flags, ({ one }) => ({
-  user: one(users, { fields: [flags.userId], references: [users.id] }),
 }));
 
 export const ratings = createTable("rating", (d) => ({
@@ -202,18 +159,10 @@ export const ratings = createTable("rating", (d) => ({
     .references(() => users.id),
 }));
 
-export const ratingsRelations = relations(ratings, ({ one }) => ({
-  user: one(users, { fields: [ratings.userId], references: [users.id] }),
-}));
-
 export const teams = createTable("team", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
   name: d.varchar({ length: 255 }).unique(),
-  description: d.varchar({ length: 510 }),
-}));
-
-export const teamsRelations = relations(teams, ({ many }) => ({
-  certificateConditions: many(certificateConditions),
+  description: d.varchar({ length: 510 }).unique(),
 }));
 
 export const certificateConditions = createTable(
@@ -222,17 +171,6 @@ export const certificateConditions = createTable(
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
     teamId: d.integer().references(() => teams.id),
     description: d.varchar({ length: 510 }),
-  }),
-);
-
-export const certificateConditionsRelations = relations(
-  certificateConditions,
-  ({ one, many }) => ({
-    team: one(teams, {
-      fields: [certificateConditions.teamId],
-      references: [teams.id],
-    }),
-    fulfillments: many(conditionFulfillments),
   }),
 );
 
@@ -249,20 +187,6 @@ export const conditionFulfillments = createTable(
       .notNull()
       .references(() => users.id),
     conditionId: d.integer().references(() => certificateConditions.id),
-  }),
-);
-
-export const conditionFulfillmentsRelations = relations(
-  conditionFulfillments,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [conditionFulfillments.userId],
-      references: [users.id],
-    }),
-    condition: one(certificateConditions, {
-      fields: [conditionFulfillments.conditionId],
-      references: [certificateConditions.id],
-    }),
   }),
 );
 
@@ -285,14 +209,6 @@ export const events = createTable("event", (d) => ({
     .$onUpdate(() => new Date()),
 }));
 
-export const eventsRelations = relations(events, ({ one, many }) => ({
-  coordinator: one(users, {
-    fields: [events.coordinatorId],
-    references: [users.id],
-  }),
-  participations: many(eventParticipations),
-}));
-
 export const eventParticipations = createTable("event_participation", (d) => ({
   id: d
     .varchar({ length: 255 })
@@ -313,20 +229,6 @@ export const eventParticipations = createTable("event_participation", (d) => ({
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 }));
-
-export const eventParticipationsRelations = relations(
-  eventParticipations,
-  ({ one }) => ({
-    event: one(events, {
-      fields: [eventParticipations.eventId],
-      references: [events.id],
-    }),
-    user: one(users, {
-      fields: [eventParticipations.userId],
-      references: [users.id],
-    }),
-  }),
-);
 
 export const notifications = createTable("notification", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
@@ -360,3 +262,124 @@ export const passwordResetTokens = createTable("password_reset_token", (d) => ({
     .notNull(),
   createdAt: d.timestamp("created_at").defaultNow(),
 }));
+
+export const meetings = createTable("meeting", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  meetingCode: d.varchar("meeting_code", { length: 11 }),
+  createdAt: d.timestamp("created_at").defaultNow(),
+  endedAt: d.timestamp("ended_at"),
+}));
+
+export const meetingParticipations = createTable(
+  "meeting_participation",
+  (d) => ({
+    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+    userId: d
+      .varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    meetingId: d
+      .integer("meeting_id")
+      .notNull()
+      .references(() => meetings.id),
+    durationAttended: d.integer("duration_attended").notNull(),
+  }),
+);
+
+// RELATIONS
+
+export const usersRelations = relations(users, ({ many, one }) => ({
+  posts: many(posts),
+  team: one(teams, { fields: [users.teamId], references: [teams.id] }),
+  role: one(roles, { fields: [users.roleId], references: [roles.id] }),
+  suspensions: many(userSuspensions),
+  notifications: many(notifications),
+  eventParticipations: many(eventParticipations),
+  coordinatedEvents: many(events),
+  conditionFulfillments: many(conditionFulfillments),
+  meetingParticipations: many(meetingParticipations),
+}));
+
+export const teamsRelations = relations(teams, ({ many }) => ({
+  members: many(users),
+  certificateConditions: many(certificateConditions),
+}));
+
+export const rolesRelations = relations(roles, ({ many }) => ({
+  users: many(users),
+}));
+
+export const userSuspensionsRelations = relations(
+  userSuspensions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userSuspensions.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  coordinator: one(users, {
+    fields: [events.coordinatorId],
+    references: [users.id],
+  }),
+  participations: many(eventParticipations),
+}));
+
+export const eventParticipationsRelations = relations(
+  eventParticipations,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [eventParticipations.eventId],
+      references: [events.id],
+    }),
+    user: one(users, {
+      fields: [eventParticipations.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const meetingsRelations = relations(meetings, ({ many }) => ({
+  participants: many(meetingParticipations),
+}));
+
+export const meetingParticipationsRelations = relations(
+  meetingParticipations,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [meetingParticipations.userId],
+      references: [users.id],
+    }),
+    meeting: one(meetings, {
+      fields: [meetingParticipations.meetingId],
+      references: [meetings.id],
+    }),
+  }),
+);
+
+export const certificateConditionsRelations = relations(
+  certificateConditions,
+  ({ one, many }) => ({
+    team: one(teams, {
+      fields: [certificateConditions.teamId],
+      references: [teams.id],
+    }),
+    fulfillments: many(conditionFulfillments),
+  }),
+);
+
+export const conditionFulfillmentsRelations = relations(
+  conditionFulfillments,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [conditionFulfillments.userId],
+      references: [users.id],
+    }),
+    condition: one(certificateConditions, {
+      fields: [conditionFulfillments.conditionId],
+      references: [certificateConditions.id],
+    }),
+  }),
+);
