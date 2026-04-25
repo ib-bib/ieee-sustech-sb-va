@@ -5,22 +5,36 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import bcrypt from "bcryptjs";
-import { passwordResetTokens, users } from "~/server/db/schema";
+import { passwordResetTokens, users, roles } from "~/server/db/schema";
 import { customAlphabet } from "nanoid";
 import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
 
+const URL =
+  env.NODE_ENV === "production"
+    ? "https://ieee-sustech-sb-va.vercel.app"
+    : "http://localhost:3000";
+
 export const userRouter = createTRPCRouter({
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1),
         email: z.string().email(),
+        roleId: z.number(),
+        joinDate: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!ctx.session.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must be logged in to create a user.",
+        });
+      }
+
       const { name, email } = input;
 
       const existingUser = await ctx.db.query.users.findFirst({
@@ -71,8 +85,16 @@ export const userRouter = createTRPCRouter({
           from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`, // sender address
           to: email, // recipient
           subject: "Volunteer Platform Credentials",
-          text: `Welcome! Your account has been created\nPlease use the following credentials to login, then change your password\nPassword: ${password}`,
-          html: `Welcome! Your account has been created<br />Please use the following credentials to login, then change your password<br /><b>Password: ${password}</b>`, // HTML body
+          text: `Welcome! Your account has been created\nPlease use the following credentials to login, then change your password\nPassword: ${password}\nLogin: ${
+            env.NODE_ENV === "production"
+              ? "https://ieee-sustech-sb-va.vercel.app/login"
+              : "http://localhost:3000/login"
+          }`,
+          html: `Welcome! Your account has been created<br />Please use the following credentials to login, then change your password<br /><b>Password: ${password}</b><br />Login: <a href="${
+            env.NODE_ENV === "production"
+              ? "https://ieee-sustech-sb-va.vercel.app/login"
+              : "http://localhost:3000/login"
+          }">${env.NODE_ENV === "production" ? "https://ieee-sustech-sb-va.vercel.app/login" : "http://localhost:3000/login"}</a>`, // HTML body
         });
 
         console.log("Message sent: %s", info.messageId);
@@ -84,10 +106,32 @@ export const userRouter = createTRPCRouter({
         };
       }
 
+      const roleQuery = await ctx.db.query.roles.findFirst({
+        where: (r, { eq }) => eq(r.id, input.roleId),
+      });
+
+      if (!roleQuery) {
+        throw new Error("Role not found.");
+      }
+
+      const hrUser = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.session.user.id),
+      });
+
+      if (!hrUser?.teamId) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "HR user has no team.",
+        });
+      }
+
       return ctx.db.insert(users).values({
         name,
         email,
         password: hashedPassword,
+        roleId: roleQuery.id,
+        joinedOn: new Date(input.joinDate).toISOString(),
+        teamId: hrUser.teamId,
       });
     }),
 
@@ -294,5 +338,238 @@ export const userRouter = createTRPCRouter({
           message: err,
         };
       }
+    }),
+
+  createUserByHR: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1),
+        email: z.string().email(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { name, email } = input;
+
+      if (ctx.session.user.role?.name !== "HR") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only HR can create users.",
+        });
+      }
+
+      const existingUser = await ctx.db.query.users.findFirst({
+        where: eq(users.email, email),
+      });
+
+      if (existingUser) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "User with this email already exists.",
+        });
+      }
+
+      const memberRole = await ctx.db.query.roles.findFirst({
+        where: eq(roles.name, "Member"),
+      });
+
+      if (!memberRole) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Member role not found.",
+        });
+      }
+
+      const hrUser = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.session.user.id),
+      });
+
+      if (!hrUser?.teamId) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "HR user has no team.",
+        });
+      }
+
+      const password = customAlphabet(
+        "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+        10,
+      )();
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const createdUsers = await ctx.db
+        .insert(users)
+        .values({
+          name,
+          email,
+          password: hashedPassword,
+          teamId: hrUser.teamId,
+          roleId: memberRole.id,
+          isFirstLogin: true,
+        })
+        .returning({ id: users.id });
+
+      const transporter = nodemailer.createTransport({
+        host: "smtp.google.com",
+        port: 465,
+        service: "gmail",
+        auth: {
+          user: env.EMAIL_ADDRESS,
+          pass: env.EMAIL_PASS,
+        },
+      });
+
+      try {
+        await transporter.verify();
+        console.log("Google Email Service is ready to take our messages");
+      } catch (err) {
+        console.error("Could Not Connect To Google Email Service", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Email service error.",
+        });
+      }
+
+      try {
+        const info = await transporter.sendMail({
+          from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`,
+          to: email,
+          subject: "Account Created",
+          text: `Your account has been created by your HR. Please login at ${
+            env.NODE_ENV === "production"
+              ? "https://ieee-sustech-sb-va.vercel.app/login"
+              : "http://localhost:3000/login"
+          } and set your password.`,
+          html: `Your account has been created by your HR. Please login at <a href="${
+            env.NODE_ENV === "production"
+              ? "https://ieee-sustech-sb-va.vercel.app/login"
+              : "http://localhost:3000/login"
+          }">${env.NODE_ENV === "production" ? "https://ieee-sustech-sb-va.vercel.app/login" : "http://localhost:3000/login"}</a> and set your password.`,
+        });
+
+        console.log("Message sent: %s", info.messageId);
+      } catch (err) {
+        console.error("Error while sending mail:", err);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to send email.",
+        });
+      }
+
+      return {
+        id: createdUsers[0]?.id,
+        email,
+      };
+    }),
+
+  roles: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db.query.roles.findMany({
+      orderBy: (r, { asc }) => asc(r.id),
+    });
+    return rows.map((r) => ({ id: r.id, name: r.name }));
+  }),
+
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    const hrUser = await ctx.db.query.users.findFirst({
+      where: (u, { eq }) => eq(u.id, ctx.session.user.id),
+    });
+
+    if (!hrUser?.teamId) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "User has no team",
+      });
+    }
+
+    const members = await ctx.db.query.users.findMany({
+      where: (u, { eq }) => eq(u.teamId, hrUser.teamId),
+      orderBy: (u, { desc }) => desc(u.joinedOn),
+    });
+
+    const rolesList = await ctx.db.query.roles.findMany();
+    const roleMap = new Map(rolesList.map((r) => [r.id, r.name]));
+
+    return members.map((m) => ({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      roleId: m.roleId,
+      role: roleMap.get(m.roleId),
+      joinDate: m.joinedOn,
+      isActive: m.isActive,
+    }));
+  }),
+
+  getOne: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, input.id),
+      });
+      if (!user)
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      const roleRow = await ctx.db.query.roles.findFirst({
+        where: (r, { eq }) => eq(r.id, user.roleId),
+      });
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        roleId: user.roleId,
+        role: roleRow?.name ?? null,
+        joinDate: user.joinedOn,
+        isActive: user.isActive,
+      };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1),
+        email: z.string().email(),
+        roleId: z.number(),
+        joinDate: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, input.id),
+      });
+      if (!user)
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+
+      const roleRow = await ctx.db.query.roles.findFirst({
+        where: (r, { eq }) => eq(r.id, input.roleId),
+      });
+      if (!roleRow)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Role not found" });
+
+      await ctx.db
+        .update(users)
+        .set({
+          name: input.name,
+          email: input.email,
+          roleId: roleRow.id,
+          joinedOn: new Date(input.joinDate).toISOString(),
+        })
+        .where(eq(users.id, input.id));
+
+      return { success: true };
+    }),
+
+  deactivate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, input.id),
+      });
+      if (!user)
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      await ctx.db
+        .update(users)
+        .set({ isActive: false })
+        .where(eq(users.id, input.id));
+      return { success: true };
     }),
 });

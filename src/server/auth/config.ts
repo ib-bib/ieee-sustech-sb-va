@@ -12,8 +12,13 @@ import {
   passwordResetTokens,
   sessions,
   users,
-  verificationTokens,
+  roles,
 } from "~/server/db/schema";
+
+type UserRole = {
+  id: number;
+  name: string | null;
+};
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -25,15 +30,16 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      role?: UserRole;
+      isFirstLogin?: boolean;
       // ...other properties
-      // role: UserRole;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    role?: UserRole;
+    isFirstLogin?: boolean;
+  }
 }
 
 /**
@@ -48,7 +54,7 @@ export const authConfig = {
   },
   providers: [
     Credentials({
-      id: "default-credentials",
+      id: "credentials",
       name: "Password Login",
       credentials: {
         email: {
@@ -76,6 +82,9 @@ export const authConfig = {
 
         const user = await db.query.users.findFirst({
           where: (users, { eq }) => eq(users.email, email),
+          with: {
+            role: true,
+          },
         });
 
         if (!user?.password) {
@@ -90,6 +99,8 @@ export const authConfig = {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role ?? undefined,
+          isFirstLogin: !!user.isFirstLogin,
         };
       },
     }),
@@ -123,6 +134,9 @@ export const authConfig = {
 
         const user = await db.query.users.findFirst({
           where: (users, { eq }) => eq(users.email, email),
+          with: {
+            role: true,
+          },
         });
 
         if (!user) {
@@ -159,6 +173,8 @@ export const authConfig = {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role ?? undefined,
+          isFirstLogin: !!user.isFirstLogin,
         };
       },
     }),
@@ -167,7 +183,6 @@ export const authConfig = {
     usersTable: users,
     accountsTable: accounts,
     sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
   }),
   session: {
     strategy: "jwt",
@@ -179,12 +194,16 @@ export const authConfig = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.role = user.role ?? undefined;
+        token.isFirstLogin = !!user.isFirstLogin;
       }
       return token;
     },
     session: async ({ session, token }) => {
       if (token && session.user) {
         session.user.id = token.id as string;
+        session.user.role = token.role as UserRole;
+        session.user.isFirstLogin = token.isFirstLogin as boolean;
       }
       return session;
     },

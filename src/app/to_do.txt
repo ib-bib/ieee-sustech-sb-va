@@ -8,7 +8,21 @@ COLORS FOR USE
 
 https://brand-experience.ieee.org/guidelines/digital/style-guide/branding-visual-elements/
 
+connect your google account - must be the same one you use to enter meetings
+if you have an issue with your google account, contact your HR, your deputy captain, or your team captain
+
 To be implemented in the end:
 - Semantic HTML
 - Set Colors as Variables
 - Custom 404 Page
+- Translation to Arabic
+
+1	Volunteer
+2	HR
+3	Captain
+4	Deputy Captain
+5	President
+6	Treasurer
+7	Secretary
+8	Vice President
+9	HR Manager

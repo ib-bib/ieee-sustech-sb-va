@@ -13,6 +13,11 @@ export default async function Dash() {
 
   if (!session) redirect("/");
 
+  // Check if user is HR
+  if (session.user.role?.name === "HR") {
+    redirect("/hr");
+  }
+
   return (
     <main className="flex h-full min-h-screen w-full flex-col">
       <nav className="itesm-center flex h-13 w-full justify-between bg-blue-700 px-4">

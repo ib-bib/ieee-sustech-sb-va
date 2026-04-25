@@ -10,7 +10,7 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 
 import WhiteSpinner from "~/app/_components/white_spinner";
 import Link from "next/link";
@@ -44,7 +44,13 @@ export default function LoginPage() {
 
     setValidUser(true);
     toast.success("Login successful");
-    router.push("/");
+
+    const session = await getSession();
+    if (session?.user.isFirstLogin) {
+      router.push("/change_password");
+    } else {
+      router.push("/");
+    }
   };
 
   return (

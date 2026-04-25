@@ -1,12 +1,23 @@
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "@auth/core/adapters";
+import { request } from "http";
 
 export const createTable = pgTableCreator(
   (name) => `ieee-sustech-sb-va_${name}`,
 );
 
 // TABLES
+
+export const verificationTokens = createTable(
+  "verification_token",
+  (d) => ({
+    identifier: d.varchar({ length: 255 }).notNull(),
+    token: d.varchar({ length: 255 }).notNull(),
+    expires: d.timestamp({ mode: "date", withTimezone: true }).notNull(),
+  }),
+  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
+);
 
 export const posts = createTable(
   "post",
@@ -39,7 +50,6 @@ export const users = createTable("user", (d) => ({
     .$defaultFn(() => crypto.randomUUID()),
   name: d.varchar({ length: 255 }),
   email: d.varchar({ length: 255 }).notNull().unique(),
-  meetingsEmail: d.varchar({ length: 255 }).unique(),
   password: d.varchar({ length: 255 }).notNull(),
   phone: d.varchar({ length: 15 }),
   emailVerified: d
@@ -49,10 +59,18 @@ export const users = createTable("user", (d) => ({
     })
     .default(sql`CURRENT_TIMESTAMP`),
   image: d.varchar({ length: 255 }),
-  teamId: d.integer().references(() => teams.id),
-  roleId: d.integer().references(() => roles.id),
+  teamId: d
+    .integer()
+    .references(() => teams.id)
+    .notNull(),
+  roleId: d
+    .integer()
+    .references(() => roles.id)
+    .notNull(),
   isVerified: d.boolean("is_verified").default(false),
   isActive: d.boolean("is_active").default(true),
+  isFirstLogin: d.boolean("is_first_login").default(true),
+  joinedOn: d.date("joined_on"),
 }));
 
 export const userSuspensions = createTable("user_suspension", (d) => ({
@@ -263,11 +281,20 @@ export const passwordResetTokens = createTable("password_reset_token", (d) => ({
   createdAt: d.timestamp("created_at").defaultNow(),
 }));
 
+export const meetingStatusEnum = pgEnum("meeting_status", [
+  "started",
+  "cancelled",
+  "ended",
+  "delayed",
+  "scheduled",
+]);
+
 export const meetings = createTable("meeting", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
   meetingCode: d.varchar("meeting_code", { length: 11 }),
   createdAt: d.timestamp("created_at").defaultNow(),
   endedAt: d.timestamp("ended_at"),
+  status: meetingStatusEnum(),
 }));
 
 export const meetingParticipations = createTable(
@@ -285,6 +312,36 @@ export const meetingParticipations = createTable(
     durationAttended: d.integer("duration_attended").notNull(),
   }),
 );
+
+export const freeze_request_status_enum = pgEnum("freeze_request_status", [
+  "pending",
+  "approved",
+  "rejected",
+]);
+
+export const freezeRequests = createTable("freeze_request", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  userId: d
+    .varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  reason: d.varchar("reason", { length: 255 }),
+  status: freeze_request_status_enum().default("pending").notNull(),
+}));
+
+export const freezes = createTable("freeze", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  userId: d
+    .varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id),
+  startDate: d.date("start_date").notNull(),
+  endDate: d.date("end_date").notNull(),
+  requestId: d
+    .integer("request_id")
+    .notNull()
+    .references(() => freezeRequests.id),
+}));
 
 // RELATIONS
 
@@ -383,3 +440,7 @@ export const conditionFulfillmentsRelations = relations(
     }),
   }),
 );
+
+export const freezeRelations = relations(freezes, ({ one }) => ({
+  user: one(users, { fields: [freezes.userId], references: [users.id] }),
+}));

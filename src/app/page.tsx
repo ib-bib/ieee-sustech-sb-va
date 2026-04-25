@@ -1,16 +1,17 @@
 import Link from "next/link";
 import {
   ArrowRightIcon,
-  ArrowRightStartOnRectangleIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/solid";
 
 import { auth } from "~/server/auth";
 import Image from "next/image";
+import SignOutButtonHome from "./_components/signout_home_btn";
 
 export default async function Home() {
   const session = await auth();
+  const dashboardPath = session?.user.role?.name === "HR" ? "/hr" : "/dash";
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-transparent backdrop-blur-[2px]">
@@ -45,7 +46,7 @@ export default async function Home() {
           </p>
           {session && (
             <Link
-              href="/dash"
+              href={dashboardPath}
               className="group flex items-center gap-1 text-xl underline-offset-4 transition-all delay-300 hover:underline"
             >
               Dashboard
@@ -53,20 +54,19 @@ export default async function Home() {
               <ArrowRightIcon className="hidden size-4 group-hover:block" />
             </Link>
           )}
-          <Link
-            href={session ? "/api/auth/signout" : "/login"}
-            className="group flex items-center gap-1 text-xl underline-offset-4 transition-all delay-300 hover:underline"
-          >
-            {session ? "Sign out" : "Sign in"}
-            {session ? (
-              <ArrowRightStartOnRectangleIcon className="size-4" />
-            ) : (
+          {session && <SignOutButtonHome />}
+          {!session && (
+            <Link
+              href="/login"
+              className="group flex items-center gap-1 text-xl underline-offset-4 transition-all delay-300 hover:underline"
+            >
+              Sign in
               <>
                 <ChevronRightIcon className="size-4 group-hover:hidden" />
                 <ArrowRightIcon className="hidden size-4 group-hover:block" />
               </>
-            )}
-          </Link>
+            </Link>
+          )}
         </div>
       </div>
     </main>

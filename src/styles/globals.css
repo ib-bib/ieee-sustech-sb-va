@@ -149,3 +149,6 @@ input::-ms-clear {
     --chart-5: oklch(0.645 0.246 16.439);
   }
 }
+
+/* Admin theme additions (non-destructive): import additional variables and base typography */
+@import "./admin_theme.css";
