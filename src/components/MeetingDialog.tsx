@@ -13,41 +13,29 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectValue,
+} from "./ui/select";
 
 interface MeetingDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   meeting: any;
+  open: boolean;
   onSave: (data: any) => void;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function MeetingDialog({
   open,
-  onOpenChange,
   meeting,
   onSave,
+  onOpenChange,
 }: MeetingDialogProps) {
-  const { register, handleSubmit, reset } = useForm();
-
-  useEffect(() => {
-    if (meeting) {
-      reset({
-        ...meeting,
-        date: meeting.date
-          ? new Date(meeting.date).toISOString().slice(0, 16)
-          : "",
-      });
-    } else {
-      const now = new Date();
-      now.setMinutes(0);
-      reset({
-        title: "",
-        description: "",
-        date: now.toISOString().slice(0, 16),
-        meetLink: "",
-      });
-    }
-  }, [meeting, reset]);
+  const { register } = useForm();
 
   const onSubmit = (data: any) => {
     onSave({
@@ -67,7 +55,7 @@ export function MeetingDialog({
               : "Fill out the form to create a new meeting."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={onSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title *</Label>
@@ -89,6 +77,22 @@ export function MeetingDialog({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="position">Status *</Label>
+              <Select {...register("status", { required: true })}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Scheduled, Started...etc." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="started">Started</SelectItem>
+                    <SelectItem value="ended">Ended</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="date">Date & Time *</Label>
               <Input
                 id="date"
@@ -96,6 +100,7 @@ export function MeetingDialog({
                 {...register("date", { required: true })}
               />
             </div>
+            {/* Disable past selection */}
 
             <div className="space-y-2">
               <Label htmlFor="meetLink">Google Meet Link</Label>
@@ -111,14 +116,12 @@ export function MeetingDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="submit" variant="outline">
               Cancel
             </Button>
-            <Button type="submit">{meeting ? "Update" : "Create"}</Button>
+            <Button className="cursor-pointer" type="submit">
+              Create
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

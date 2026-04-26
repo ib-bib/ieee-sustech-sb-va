@@ -80,8 +80,10 @@ export const meetingRouter = createTRPCRouter({
       z.object({
         title: z.string(),
         startTime: z.string(),
-        endTime: z.string(),
-        attendees: z.array(z.string().email()),
+        endTime: z.string().optional(),
+        description: z.string().optional(),
+        status: z.enum(["scheduled", "started", "ended"]),
+        link: z.string().url(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -91,33 +93,15 @@ export const meetingRouter = createTRPCRouter({
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
       );
-      const calendar = google.calendar({
-        version: "v3",
-        auth: oauth2Client,
-      }) as any;
-      const event: any = {
-        summary: input.title,
-        start: { dateTime: input.startTime },
-        end: { dateTime: input.endTime },
-        attendees: input.attendees.map((email) => ({ email })),
-        conferenceData: {
-          createRequest: {
-            requestId: Math.random().toString(),
-            conferenceSolutionKey: { type: "hangoutsMeet" },
-          },
-        },
-      };
-      const createdEvent = await calendar.events.insert({
-        calendarId: "primary",
-        resource: event,
-        conferenceDataVersion: 1,
-      });
-      const meetLink = createdEvent.data.conferenceData?.entryPoints?.[0]?.uri;
+
+      const { link: meetLink } = input;
+
       if (!meetLink)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create meeting",
         });
+
       const meetingCode = meetLink.split("/").pop()?.split("?")[0];
       if (!meetingCode)
         throw new TRPCError({
@@ -128,62 +112,20 @@ export const meetingRouter = createTRPCRouter({
       return { meetLink };
     }),
 
-  endMeeting: protectedProcedure
-    .input(z.object({ meetingId: z.number() }))
+  updateMeetingStatus: protectedProcedure
+    .input(
+      z.object({
+        meetingCode: z.string(),
+        status: z.enum(["scheduled", "started", "ended"]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const meeting = await ctx.db.query.meetings.findFirst({
-        where: eq(meetings.id, input.meetingId),
-      });
-      if (!meeting)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Meeting not found",
-        });
-      if (meeting.status === "ended")
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Meeting already ended",
-        });
+      if (ctx.session.user.role?.name !== "HR")
+        throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
       await ctx.db
         .update(meetings)
-        .set({ status: "ended", endedAt: new Date() })
-        .where(eq(meetings.id, input.meetingId));
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-      );
-      const meet = google.meet({ version: "v2", auth: oauth2Client }) as any;
-      const records = await meet.conferenceRecords.list({
-        filter: `meetingCode="${meeting.meetingCode}"`,
-      });
-      const latestRecord = records.data.conferenceRecords?.[0];
-      if (!latestRecord)
-        throw new TRPCError({ code: "NOT_FOUND", message: "No record found" });
-      const participants = (await meet.conferenceRecords.participants.list({
-        parent: latestRecord.name,
-      })) as any;
-      for (const p of participants.data.participants ?? []) {
-        if (!p.signedinUser?.displayName) continue;
-        const user = await ctx.db.query.users.findFirst({
-          where: eq(users.name, p.signedinUser.displayName),
-        });
-        if (!user) continue;
-        const sessions =
-          (await meet.conferenceRecords.participants.participantSessions.list({
-            parent: p.name,
-          })) as any;
-        let totalMillis = 0;
-        sessions.data.participantSessions?.forEach((s: any) => {
-          const start = new Date(s.startTime!).getTime();
-          const end = s.endTime ? new Date(s.endTime).getTime() : Date.now();
-          totalMillis += end - start;
-        });
-        await ctx.db.insert(meetingParticipations).values({
-          userId: user.id,
-          meetingId: input.meetingId,
-          durationAttended: totalMillis,
-        });
-      }
-      return { message: "Meeting ended and report generated" };
+        .set({ status: input.status })
+        .where(eq(meetings.meetingCode, input.meetingCode));
+      return { message: "Meeting status updated" };
     }),
 });

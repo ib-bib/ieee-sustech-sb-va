@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import { api } from "~/trpc/react";
 
 type Meeting = {
   id: number;
@@ -33,92 +34,50 @@ type Meeting = {
   meetLink?: string;
 };
 
-const STORAGE_KEY = "local_meetings_v1";
-
-function sampleMeetings(): Meeting[] {
-  const now = new Date();
-  const m1 = new Date(now.getTime() + 1000 * 60 * 60 * 24);
-  const m2 = new Date(now.getTime() + 1000 * 60 * 60 * 48);
-  return [
-    {
-      id: 1,
-      title: "Weekly Team Sync",
-      description: "Standup and planning",
-      date: m1.toISOString(),
-      meetLink: "",
-    },
-    {
-      id: 2,
-      title: "Project Planning",
-      description: "Roadmap and milestones",
-      date: m2.toISOString(),
-      meetLink: "",
-    },
-  ];
-}
-
 export default function Meetings() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setMeetings(JSON.parse(raw));
-      else setMeetings(sampleMeetings());
-    } catch (e) {
-      setMeetings(sampleMeetings());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const createMeetingMutation = api.meeting.createMeeting.useMutation({
+    onSuccess: () => {
+      // api.meeting.getAll.invalidate();
+      toast.success("Meeting created successfully");
+      setDialogOpen(false);
+    },
+    onError: () => {
+      toast.error("Failed to create meeting");
+    },
+  });
 
-  const persist = (items: Meeting[]) => {
-    setMeetings(items);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch (e) {
-      /* ignore */
-    }
-  };
+  // useEffect(() => {
+  //   try {
+  //     const raw = localStorage.getItem(STORAGE_KEY);
+  //     if (raw) setMeetings(JSON.parse(raw));
+  //     else setMeetings(sampleMeetings());
+  //   } catch (e) {
+  //     setMeetings(sampleMeetings());
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
 
   const handleSave = async (data: any) => {
     try {
-      if (editingMeeting) {
-        const updated = meetings.map((m) =>
-          m.id === editingMeeting.id ? { ...m, ...data } : m,
-        );
-        persist(updated);
-        toast.success("Meeting updated successfully");
-      } else {
-        const id = Date.now();
-        const created = [{ id, ...data }, ...meetings];
-        persist(created);
-        toast.success("Meeting created successfully");
-      }
+      createMeetingMutation.mutate({
+        title: data.title,
+        description: data.description,
+        startTime: data.date,
+        link: data.meetLink,
+        status: data.status,
+      });
+      toast.success("Meeting created successfully");
+
       setDialogOpen(false);
-      setEditingMeeting(null);
     } catch (err) {
       console.error(err);
       toast.error("Failed to save meeting");
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!meetingToDelete) return;
-    try {
-      persist(meetings.filter((m) => m.id !== meetingToDelete.id));
-      setDeleteDialogOpen(false);
-      setMeetingToDelete(null);
-      toast.success("Meeting deleted successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete meeting");
     }
   };
 
@@ -132,9 +91,9 @@ export default function Meetings() {
     )
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  if (loading) {
-    return <div className="py-12 text-center">Loading...</div>;
-  }
+  // if (loading) {
+  //   return <div className="py-12 text-center">Loading...</div>;
+  // }
 
   return (
     <div className="space-y-6">
@@ -148,8 +107,8 @@ export default function Meetings() {
           </p>
         </div>
         <Button
+          className="cursor-pointer"
           onClick={() => {
-            setEditingMeeting(null);
             setDialogOpen(true);
           }}
         >
@@ -217,42 +176,31 @@ export default function Meetings() {
                                 {meeting.description}
                               </p>
                             )}
-                            {meeting.meetLink && (
-                              <a
-                                href={meeting.meetLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-1 inline-flex cursor-pointer items-center gap-1 text-sm text-blue-600 hover:underline"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                Join Google Meet
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            )}
                           </div>
                         </div>
                       </Link>
+                      {meeting.meetLink && (
+                        <Link
+                          href={meeting.meetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex cursor-pointer items-center gap-1 text-sm text-blue-600 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Join Google Meet
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      )}
                     </div>
                     <div className="flex items-center gap-1 self-end sm:self-start">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setEditingMeeting(meeting);
                           setDialogOpen(true);
                         }}
                       >
                         <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setMeetingToDelete(meeting);
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
                     </div>
                   </div>
@@ -266,31 +214,9 @@ export default function Meetings() {
       <MeetingDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        meeting={editingMeeting}
         onSave={handleSave}
+        meeting={""}
       />
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Meeting</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{meetingToDelete?.title}"? This
-              will also delete all attendance records. This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

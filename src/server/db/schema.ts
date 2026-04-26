@@ -292,6 +292,7 @@ export const meetingStatusEnum = pgEnum("meeting_status", [
 export const meetings = createTable("meeting", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
   meetingCode: d.varchar("meeting_code", { length: 11 }),
+  description: d.varchar("description", { length: 510 }),
   createdAt: d.timestamp("created_at").defaultNow(),
   endedAt: d.timestamp("ended_at"),
   status: meetingStatusEnum(),
