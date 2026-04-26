@@ -85,16 +85,8 @@ export const userRouter = createTRPCRouter({
           from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`, // sender address
           to: email, // recipient
           subject: "Volunteer Platform Credentials",
-          text: `Welcome! Your account has been created\nPlease use the following credentials to login, then change your password\nPassword: ${password}\nLogin: ${
-            env.NODE_ENV === "production"
-              ? "https://ieee-sustech-sb-va.vercel.app/login"
-              : "http://localhost:3000/login"
-          }`,
-          html: `Welcome! Your account has been created<br />Please use the following credentials to login, then change your password<br /><b>Password: ${password}</b><br />Login: <a href="${
-            env.NODE_ENV === "production"
-              ? "https://ieee-sustech-sb-va.vercel.app/login"
-              : "http://localhost:3000/login"
-          }">${env.NODE_ENV === "production" ? "https://ieee-sustech-sb-va.vercel.app/login" : "http://localhost:3000/login"}</a>`, // HTML body
+          text: `Welcome! Your account has been created\nPlease use the following credentials to login, then change your password\nPassword: ${password}\nLogin: ${URL}/login`,
+          html: `Welcome! Your account has been created<br />Please use the following credentials to login, then change your password<br /><b>Password: ${password}</b><br />Login: <a href="${URL}/login">${URL}/login</a>`, // HTML body
         });
 
         console.log("Message sent: %s", info.messageId);
@@ -435,16 +427,8 @@ export const userRouter = createTRPCRouter({
           from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`,
           to: email,
           subject: "Account Created",
-          text: `Your account has been created by your HR. Please login at ${
-            env.NODE_ENV === "production"
-              ? "https://ieee-sustech-sb-va.vercel.app/login"
-              : "http://localhost:3000/login"
-          } and set your password.`,
-          html: `Your account has been created by your HR. Please login at <a href="${
-            env.NODE_ENV === "production"
-              ? "https://ieee-sustech-sb-va.vercel.app/login"
-              : "http://localhost:3000/login"
-          }">${env.NODE_ENV === "production" ? "https://ieee-sustech-sb-va.vercel.app/login" : "http://localhost:3000/login"}</a> and set your password.`,
+          text: `Your account has been created by your HR. Please login at ${URL}/login and set your password.`,
+          html: `Your account has been created by your HR. Please login at <a href="${URL}/login">${URL}/login</a> and set your password.`,
         });
 
         console.log("Message sent: %s", info.messageId);
