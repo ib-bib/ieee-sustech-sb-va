@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -35,13 +35,26 @@ export function MeetingDialog({
   onSave,
   onOpenChange,
 }: MeetingDialogProps) {
-  const { register } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onSubmit = (data: any) => {
+  const statusValue = watch("status") || "";
+
+  const onSubmit = handleSubmit((data: any) => {
+    setIsSubmitting(true);
     onSave({
-      ...data,
-      date: new Date(data.date).toISOString(),
+      title: data.title,
+      description: data.description,
+      date: data.date,
+      meetLink: data.meetLink,
+      status: data.status,
     });
+  });
+
+  const handleCancel = () => {
+    reset();
+    setIsSubmitting(false);
+    onOpenChange(false);
   };
 
   return (
@@ -61,8 +74,9 @@ export function MeetingDialog({
               <Label htmlFor="title">Title *</Label>
               <Input
                 id="title"
-                {...register("title", { required: true })}
+                {...register("title", { required: "Title is required" })}
                 placeholder="e.g., Weekly Team Meeting"
+                disabled={isSubmitting}
               />
             </div>
 
@@ -73,13 +87,17 @@ export function MeetingDialog({
                 {...register("description")}
                 placeholder="Meeting agenda or notes..."
                 rows={3}
+                disabled={isSubmitting}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="position">Status *</Label>
-              <Select {...register("status", { required: true })}>
-                <SelectTrigger className="w-full">
+              <Label htmlFor="status">Status *</Label>
+              <Select
+                value={statusValue}
+                onValueChange={(val) => setValue("status", val)}
+              >
+                <SelectTrigger className="w-full" disabled={isSubmitting}>
                   <SelectValue placeholder="Scheduled, Started...etc." />
                 </SelectTrigger>
                 <SelectContent>
@@ -97,17 +115,19 @@ export function MeetingDialog({
               <Input
                 id="date"
                 type="datetime-local"
-                {...register("date", { required: true })}
+                {...register("date", { required: "Date is required" })}
+                disabled={isSubmitting}
               />
             </div>
-            {/* Disable past selection */}
 
             <div className="space-y-2">
               <Label htmlFor="meetLink">Google Meet Link</Label>
               <Input
                 id="meetLink"
+                type="url"
                 {...register("meetLink")}
                 placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                disabled={isSubmitting}
               />
               <p className="text-xs text-gray-500">
                 Optional: Add the Google Meet link to enable attendance tracking
@@ -116,11 +136,20 @@ export function MeetingDialog({
           </div>
 
           <DialogFooter>
-            <Button type="submit" variant="outline">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button className="cursor-pointer" type="submit">
-              Create
+            <Button
+              className="cursor-pointer"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>
         </form>

@@ -1,7 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import { index, pgEnum, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "@auth/core/adapters";
-import { request } from "http";
 
 export const createTable = pgTableCreator(
   (name) => `ieee-sustech-sb-va_${name}`,
@@ -291,8 +290,10 @@ export const meetingStatusEnum = pgEnum("meeting_status", [
 
 export const meetings = createTable("meeting", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  title: d.varchar("title", { length: 255 }),
   meetingCode: d.varchar("meeting_code", { length: 11 }),
   description: d.varchar("description", { length: 510 }),
+  startTime: d.timestamp("start_time", { withTimezone: true, mode: "date" }),
   createdAt: d.timestamp("created_at").defaultNow(),
   endedAt: d.timestamp("ended_at"),
   status: meetingStatusEnum(),

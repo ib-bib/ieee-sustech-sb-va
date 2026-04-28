@@ -1,29 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
-import {
-  Plus,
-  Search,
-  Calendar,
-  ExternalLink,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { Plus, Search, Calendar, ExternalLink, Pencil } from "lucide-react";
 import { MeetingDialog } from "./MeetingDialog";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
 import { api } from "~/trpc/react";
 
 type Meeting = {
@@ -64,21 +47,13 @@ export default function Meetings() {
   // }, []);
 
   const handleSave = async (data: any) => {
-    try {
-      createMeetingMutation.mutate({
-        title: data.title,
-        description: data.description,
-        startTime: data.date,
-        link: data.meetLink,
-        status: data.status,
-      });
-      toast.success("Meeting created successfully");
-
-      setDialogOpen(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to save meeting");
-    }
+    createMeetingMutation.mutate({
+      title: data.title,
+      description: data.description,
+      startTime: data.date,
+      link: data.meetLink || "",
+      status: data.status,
+    });
   };
 
   const filteredMeetings = meetings

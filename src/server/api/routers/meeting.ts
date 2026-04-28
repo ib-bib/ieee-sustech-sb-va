@@ -78,38 +78,37 @@ export const meetingRouter = createTRPCRouter({
   createMeeting: protectedProcedure
     .input(
       z.object({
-        title: z.string(),
+        title: z.string().min(1, "Title required"),
         startTime: z.string(),
-        endTime: z.string().optional(),
         description: z.string().optional(),
         status: z.enum(["scheduled", "started", "ended"]),
-        link: z.string().url(),
+        link: z.string().url().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role?.name !== "HR")
-        throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-      );
-
-      const { link: meetLink } = input;
-
-      if (!meetLink)
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create meeting",
+          code: "FORBIDDEN",
+          message: "Only HR can create meetings",
         });
 
-      const meetingCode = meetLink.split("/").pop()?.split("?")[0];
-      if (!meetingCode)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Invalid meeting link",
-        });
-      await ctx.db.insert(meetings).values({ meetingCode, status: "started" });
-      return { meetLink };
+      const { link, title, startTime, description, status } = input;
+
+      const meetingCode =
+        link?.split("/").pop()?.split("?")[0] || `meet-${Date.now()}`;
+
+      const result = await ctx.db
+        .insert(meetings)
+        .values({
+          title,
+          meetingCode,
+          description,
+          startTime: new Date(startTime),
+          status,
+        })
+        .returning();
+
+      return result[0];
     }),
 
   updateMeetingStatus: protectedProcedure
