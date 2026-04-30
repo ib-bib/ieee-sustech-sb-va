@@ -8,6 +8,7 @@ import { Plus, Search, Calendar, ExternalLink, Pencil } from "lucide-react";
 import { MeetingDialog } from "./MeetingDialog";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
+import { meet } from "googleapis/build/src/apis/meet";
 
 type Meeting = {
   id: number;
@@ -19,13 +20,14 @@ type Meeting = {
 
 export default function Meetings() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
-  // const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const meetingsQuery = api.meeting.getAll.useQuery();
+
   const createMeetingMutation = api.meeting.createMeeting.useMutation({
     onSuccess: () => {
-      // api.meeting.getAll.invalidate();
+      void meetingsQuery.refetch();
       toast.success("Meeting created successfully");
       setDialogOpen(false);
     },
@@ -34,41 +36,70 @@ export default function Meetings() {
     },
   });
 
-  // useEffect(() => {
-  //   try {
-  //     const raw = localStorage.getItem(STORAGE_KEY);
-  //     if (raw) setMeetings(JSON.parse(raw));
-  //     else setMeetings(sampleMeetings());
-  //   } catch (e) {
-  //     setMeetings(sampleMeetings());
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }, []);
-
   const handleSave = async (data: any) => {
-    createMeetingMutation.mutate({
-      title: data.title,
-      description: data.description,
-      startTime: data.date,
-      link: data.meetLink || "",
-      status: data.status,
-    });
+    const loadingToast = toast.loading("Creating meeting...");
+
+    createMeetingMutation.mutate(
+      {
+        title: data.title,
+        description: data.description,
+        startTime: data.date.toISOString(),
+        link: data.meetLink,
+        status: data.status,
+      },
+      {
+        onSettled: () => toast.dismiss(loadingToast),
+      },
+    );
   };
 
-  const filteredMeetings = meetings
-    .filter(
-      (meeting) =>
-        meeting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (meeting.description || "")
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()),
-    )
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const filteredMeetings = (meetingsQuery.data ?? [])
+    .filter((meeting) => {
+      // 1. Handle potential null title safely
+      const title = meeting.title ?? "Untitled Meeting";
+      const description = meeting.description ?? "";
+      const searchLower = searchQuery.toLowerCase();
 
-  // if (loading) {
-  //   return <div className="py-12 text-center">Loading...</div>;
-  // }
+      return (
+        title.toLowerCase().includes(searchLower) ||
+        description.toLowerCase().includes(searchLower)
+      );
+    })
+    .sort((a, b) => {
+      // 2. Handle potential null startTime for sorting
+      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return timeB - timeA;
+    });
+
+  if (meetingsQuery.isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-500">Loading meetings...</span>
+      </div>
+    );
+  }
+
+  if (meetingsQuery.isError) {
+    return (
+      <Card className="border-red-200 bg-red-50">
+        <CardContent className="pt-6 text-center">
+          <p className="font-medium text-red-800">Failed to load meetings</p>
+          <p className="mb-4 text-sm text-red-600">
+            {meetingsQuery.error.message}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => void meetingsQuery.refetch()}
+            className="border-red-300 hover:bg-red-100"
+          >
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -116,7 +147,9 @@ export default function Meetings() {
           ) : (
             <div className="space-y-4">
               {filteredMeetings.map((meeting) => {
-                const meetingDate = new Date(meeting.date);
+                const meetingDate = meeting.startTime
+                  ? new Date(meeting.startTime)
+                  : new Date();
                 const isPast = meetingDate < new Date();
 
                 return (
@@ -154,16 +187,13 @@ export default function Meetings() {
                           </div>
                         </div>
                       </Link>
-                      {meeting.meetLink && (
+                      {meeting.meetingCode && meeting.status != "ended" && (
                         <Link
-                          href={meeting.meetLink}
+                          href="{`[https://meet.google.com/$](https://meet.google.com/$){meeting.meetingCode}`}"
                           target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 inline-flex cursor-pointer items-center gap-1 text-sm text-blue-600 hover:underline"
-                          onClick={(e) => e.stopPropagation()}
+                          className="text-blue-600"
                         >
-                          Join Google Meet
-                          <ExternalLink className="h-3 w-3" />
+                          Join Meeting
                         </Link>
                       )}
                     </div>

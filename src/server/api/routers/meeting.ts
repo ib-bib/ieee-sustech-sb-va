@@ -82,7 +82,7 @@ export const meetingRouter = createTRPCRouter({
         startTime: z.string(),
         description: z.string().optional(),
         status: z.enum(["scheduled", "started", "ended"]),
-        link: z.string().url().optional(),
+        link: z.string().url(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -94,21 +94,35 @@ export const meetingRouter = createTRPCRouter({
 
       const { link, title, startTime, description, status } = input;
 
+      console.log(input);
+
       const meetingCode =
         link?.split("/").pop()?.split("?")[0] || `meet-${Date.now()}`;
 
-      const result = await ctx.db
+      console.log(`Meeting code: ${meetingCode}`);
+
+      const insertOperation = await ctx.db
         .insert(meetings)
         .values({
           title,
-          meetingCode,
           description,
           startTime: new Date(startTime),
+          endedAt: status === "ended" ? new Date() : null,
+          meetingCode,
           status,
         })
-        .returning();
+        .returning({ id: meetings.id });
 
-      return result[0];
+      const meetingId = insertOperation[0]?.id;
+
+      if (!meetingId) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create meeting",
+        });
+      }
+
+      return { message: "Meeting created", meetingId };
     }),
 
   updateMeetingStatus: protectedProcedure
@@ -127,4 +141,12 @@ export const meetingRouter = createTRPCRouter({
         .where(eq(meetings.meetingCode, input.meetingCode));
       return { message: "Meeting status updated" };
     }),
+
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    const result = await ctx.db.query.meetings.findMany({
+      orderBy: (t, { desc }) => desc(t.createdAt),
+    });
+
+    return result;
+  }),
 });

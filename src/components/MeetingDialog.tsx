@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +9,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
 import {
   Select,
   SelectTrigger,
@@ -21,6 +21,15 @@ import {
   SelectItem,
   SelectValue,
 } from "./ui/select";
+import { Calendar } from "~/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { CalendarIcon } from "@heroicons/react/24/outline";
+import { format } from "date-fns";
+import { cn } from "~/lib/utils";
 
 interface MeetingDialogProps {
   meeting: any;
@@ -35,8 +44,9 @@ export function MeetingDialog({
   onSave,
   onOpenChange,
 }: MeetingDialogProps) {
-  const { register, handleSubmit, reset, setValue, watch } = useForm();
+  const { control, register, handleSubmit, reset, setValue, watch } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const statusValue = watch("status") || "";
 
@@ -89,6 +99,11 @@ export function MeetingDialog({
                 rows={3}
                 disabled={isSubmitting}
               />
+
+              <p className="text-xs text-gray-500">
+                Optional: Add a description to infrom participants about the
+                meeting agenda or any important notes.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -112,11 +127,53 @@ export function MeetingDialog({
 
             <div className="space-y-2">
               <Label htmlFor="date">Date & Time *</Label>
-              <Input
+              {/* <Input
                 id="date"
                 type="datetime-local"
                 {...register("date", { required: "Date is required" })}
                 disabled={isSubmitting}
+              /> */}
+              <Controller
+                control={control}
+                name="date"
+                rules={{ required: "Date is required" }}
+                render={({ field }) => (
+                  <Popover
+                    open={isCalendarOpen}
+                    onOpenChange={setIsCalendarOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !field.value && "text-muted-foreground",
+                        )}
+                        disabled={isSubmitting}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={(date) => {
+                          field.onChange(date); // Update the form state
+                          setIsCalendarOpen(false); // Close the popover
+                        }}
+                        // disabled={(date) =>
+                        //   date < new Date() || date < new Date("1900-01-01")
+                        // }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
               />
             </div>
 
@@ -128,10 +185,8 @@ export function MeetingDialog({
                 {...register("meetLink")}
                 placeholder="https://meet.google.com/xxx-xxxx-xxx"
                 disabled={isSubmitting}
+                required
               />
-              <p className="text-xs text-gray-500">
-                Optional: Add the Google Meet link to enable attendance tracking
-              </p>
             </div>
           </div>
 

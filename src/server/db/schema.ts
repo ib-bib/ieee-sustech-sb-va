@@ -291,11 +291,11 @@ export const meetingStatusEnum = pgEnum("meeting_status", [
 export const meetings = createTable("meeting", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
   title: d.varchar("title", { length: 255 }),
-  meetingCode: d.varchar("meeting_code", { length: 11 }),
+  meetingCode: d.varchar("meeting_code", { length: 12 }),
   description: d.varchar("description", { length: 510 }),
   startTime: d.timestamp("start_time", { withTimezone: true, mode: "date" }),
+  endedAt: d.timestamp("ended_at", { withTimezone: true, mode: "date" }),
   createdAt: d.timestamp("created_at").defaultNow(),
-  endedAt: d.timestamp("ended_at"),
   status: meetingStatusEnum(),
 }));
 
