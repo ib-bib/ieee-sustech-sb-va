@@ -49,3 +49,5 @@ yarn-error.log*
 .vscode/
 
 credentials.json
+
+MOBILE_API_DOCUMENTATION.md

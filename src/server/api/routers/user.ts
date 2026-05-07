@@ -360,17 +360,6 @@ export const userRouter = createTRPCRouter({
         });
       }
 
-      const memberRole = await ctx.db.query.roles.findFirst({
-        where: eq(roles.name, "Member"),
-      });
-
-      if (!memberRole) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Member role not found.",
-        });
-      }
-
       const hrUser = await ctx.db.query.users.findFirst({
         where: eq(users.id, ctx.session.user.id),
       });
@@ -396,7 +385,7 @@ export const userRouter = createTRPCRouter({
           email,
           password: hashedPassword,
           teamId: hrUser.teamId,
-          roleId: memberRole.id,
+          roleId: 1,
           isFirstLogin: true,
         })
         .returning({ id: users.id });
