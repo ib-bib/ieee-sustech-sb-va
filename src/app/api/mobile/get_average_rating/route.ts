@@ -21,6 +21,21 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const userEmail = user.email;
+  const userData = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, userEmail),
+  });
+
+  if (!userData?.id) {
+    return NextResponse.json(
+      {
+        value: null,
+        error: "Server error. Please try again",
+      },
+      { status: 500 },
+    );
+  }
+
   const averageRating = await db
     .select({
       value: avg(ratings.value),
@@ -28,7 +43,7 @@ export async function GET(req: NextRequest) {
     })
     .from(ratings)
     .groupBy(ratings.userId)
-    .having(({ userId }) => eq(userId, user.id));
+    .having(({ userId }) => eq(userId, userData.id));
 
   if (!averageRating) {
     return NextResponse.json(

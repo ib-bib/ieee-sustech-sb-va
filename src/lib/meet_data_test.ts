@@ -94,8 +94,8 @@ async function getReportForCode(targetCode: string) {
           : "0.00";
 
       const name =
-        p.signedinUser?.displayName ||
-        p.anonymousUser?.displayName ||
+        p.signedinUser?.displayName ??
+        p.anonymousUser?.displayName ??
         "Unknown Guest";
       console.log(
         `👤 ${name.padEnd(25)} | ⏱️  ${pMins}m ${pSecs}s (${percentage}%)`,

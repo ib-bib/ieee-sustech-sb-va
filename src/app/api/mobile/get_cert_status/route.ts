@@ -25,10 +25,25 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const userEmail = user.email;
+  const userData = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, userEmail),
+  });
+
+  if (!userData?.id) {
+    return NextResponse.json(
+      {
+        value: null,
+        error: "Server error. Please try again",
+      },
+      { status: 500 },
+    );
+  }
+
   // Get user's teamId
   const userTeamId = (
     await db.query.users.findFirst({
-      where: (u, { eq }) => eq(u.id, user.id),
+      where: (u, { eq }) => eq(u.id, userData.id),
     })
   )?.teamId;
 
@@ -53,7 +68,7 @@ export async function GET(req: NextRequest) {
 
   // Get all user's fulfillments (with condition)
   const fulfillments = await db.query.conditionFulfillments.findMany({
-    where: (cf, { eq }) => eq(cf.userId, user.id),
+    where: (cf, { eq }) => eq(cf.userId, userData.id),
     with: {
       condition: {
         columns: {

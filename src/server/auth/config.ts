@@ -12,7 +12,6 @@ import {
   passwordResetTokens,
   sessions,
   users,
-  roles,
 } from "~/server/db/schema";
 
 type UserRole = {

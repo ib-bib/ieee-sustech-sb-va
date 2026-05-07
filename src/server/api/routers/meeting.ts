@@ -3,7 +3,7 @@ import { z } from "zod";
 import { google } from "googleapis";
 import { formatDuration } from "../../../lib/utils";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { meetings, meetingParticipations, users } from "../../db/schema";
+import { meetings } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
@@ -11,7 +11,7 @@ import { env } from "~/env";
 export const meetingRouter = createTRPCRouter({
   testSync: protectedProcedure
     .input(z.object({ link: z.string().url() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const oauth2Client = new google.auth.OAuth2(
         env.GOOGLE_CLIENT_ID,
         env.GOOGLE_CLIENT_SECRET,
@@ -63,7 +63,7 @@ export const meetingRouter = createTRPCRouter({
 
         // Use displayName since personal accounts often hide emails in the API
         console.log(
-          `Participant: ${p.signedinUser?.displayName || "Anonymous"}`,
+          `Participant: ${p.signedinUser?.displayName ?? "Anonymous"}`,
         );
         console.log(`Total Time: ${formatDuration(totalMillis)}`);
         console.log(
@@ -97,7 +97,7 @@ export const meetingRouter = createTRPCRouter({
       console.log(input);
 
       const meetingCode =
-        link?.split("/").pop()?.split("?")[0] || `meet-${Date.now()}`;
+        link?.split("/").pop()?.split("?")[0] ?? `meet-${Date.now()}`;
 
       console.log(`Meeting code: ${meetingCode}`);
 

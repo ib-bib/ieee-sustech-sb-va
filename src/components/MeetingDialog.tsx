@@ -48,7 +48,7 @@ export function MeetingDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const statusValue = watch("status") || "";
+  const statusValue = watch("status") ?? "";
 
   const onSubmit = handleSubmit((data: any) => {
     setIsSubmitting(true);

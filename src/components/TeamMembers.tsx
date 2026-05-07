@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader } from "./ui/card";
 import { Input } from "./ui/input";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { TeamMemberDialog } from "./TeamMemberDialog";
@@ -39,8 +39,8 @@ export function TeamMembers() {
   const utils = api.useContext();
   const { data: members = [], isLoading } = api.user.getAll.useQuery();
   const deactivateMutation = api.user.deactivate.useMutation({
-    onSuccess: () => {
-      utils.user.getAll.invalidate();
+    onSuccess: async () => {
+      await utils.user.getAll.invalidate();
       toast.success("User deactivated");
       setDeleteDialogOpen(false);
       setMemberToDelete(null);
@@ -189,8 +189,8 @@ export function TeamMembers() {
             <AlertDialogTitle>Deactivate Team Member</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to deactivate {memberToDelete?.name}? This
-              will disable the user's account. This action can be reversed by an
-              admin.
+              will disable the user&apos;s account. This action can be reversed
+              by an admin.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

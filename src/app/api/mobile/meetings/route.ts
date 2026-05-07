@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
-import { meetings, roles } from "~/server/db/schema";
+import { meetings } from "~/server/db/schema";
 import { authenticateMobileRequest } from "~/server/api/middleware/mobile_auth";
 
 const CreateMeetingSchema = z.object({

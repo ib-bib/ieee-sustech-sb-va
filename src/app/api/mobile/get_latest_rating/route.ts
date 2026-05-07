@@ -19,8 +19,23 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const userEmail = user.email;
+  const userData = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, userEmail),
+  });
+
+  if (!userData?.id) {
+    return NextResponse.json(
+      {
+        value: null,
+        error: "Server error. Please try again",
+      },
+      { status: 500 },
+    );
+  }
+
   const ratings = await db.query.ratings.findMany({
-    where: (ratings, { eq }) => eq(ratings.userId, user.id),
+    where: (ratings, { eq }) => eq(ratings.userId, userData.id),
     orderBy: (ratings, { desc }) => [desc(ratings.givenAt)],
     limit: 1,
   });

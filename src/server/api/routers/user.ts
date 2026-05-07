@@ -5,7 +5,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import bcrypt from "bcryptjs";
-import { passwordResetTokens, users, roles } from "~/server/db/schema";
+import { passwordResetTokens, users } from "~/server/db/schema";
 import { customAlphabet } from "nanoid";
 import nodemailer from "nodemailer";
 import { eq } from "drizzle-orm";

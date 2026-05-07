@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
-import { users, roles } from "~/server/db/schema";
+import { users } from "~/server/db/schema";
 import { authenticateMobileRequest } from "~/server/api/middleware/mobile_auth";
 import { eq } from "drizzle-orm";
 

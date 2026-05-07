@@ -2,13 +2,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader } from "./ui/card";
 import { Input } from "./ui/input";
-import { Plus, Search, Calendar, ExternalLink, Pencil } from "lucide-react";
+import { Plus, Search, Calendar, Pencil } from "lucide-react";
 import { MeetingDialog } from "./MeetingDialog";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
-import { meet } from "googleapis/build/src/apis/meet";
 
 type Meeting = {
   id: number;
@@ -19,15 +18,14 @@ type Meeting = {
 };
 
 export default function Meetings() {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const meetingsQuery = api.meeting.getAll.useQuery();
 
   const createMeetingMutation = api.meeting.createMeeting.useMutation({
-    onSuccess: () => {
-      void meetingsQuery.refetch();
+    onSuccess: async () => {
+      await meetingsQuery.refetch();
       toast.success("Meeting created successfully");
       setDialogOpen(false);
     },

@@ -35,11 +35,12 @@ export function TeamMemberDialog({
 }: TeamMemberDialogProps) {
   const { register, handleSubmit, reset, setValue, watch } = useForm();
   const utils = api.useContext();
-  const { data: roles = [], isLoading: rolesLoading } = api.user.roles.useQuery();
+  const { data: roles = [], isLoading: rolesLoading } =
+    api.user.roles.useQuery();
 
   const createUserMutation = api.user.create.useMutation({
-    onSuccess: () => {
-      utils.user.getAll.invalidate();
+    onSuccess: async () => {
+      await utils.user.getAll.invalidate();
       toast.success("User created successfully");
       onOpenChange(false);
     },
@@ -49,8 +50,8 @@ export function TeamMemberDialog({
   });
 
   const updateUserMutation = api.user.update.useMutation({
-    onSuccess: () => {
-      utils.user.getAll.invalidate();
+    onSuccess: async () => {
+      await utils.user.getAll.invalidate();
       toast.success("User updated successfully");
       onOpenChange(false);
     },
@@ -128,7 +129,7 @@ export function TeamMemberDialog({
               <Select
                 {...register("roleId", { required: true })}
                 onValueChange={(val: string) => setValue("roleId", val)}
-                value={watch("roleId") || ""}
+                value={watch("roleId") ?? ""}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Captain, Deputy, Volunteer...etc." />

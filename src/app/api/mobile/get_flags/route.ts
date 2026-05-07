@@ -20,9 +20,24 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const userEmail = user.email;
+  const userData = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.email, userEmail),
+  });
+
+  if (!userData?.id) {
+    return NextResponse.json(
+      {
+        value: null,
+        error: "Server error. Please try again",
+      },
+      { status: 500 },
+    );
+  }
+
   const flags = await db.query.flags.findMany({
     where: (flags, { eq, and }) =>
-      and(eq(flags.userId, user.id), eq(flags.is_active, true)),
+      and(eq(flags.userId, userData.id), eq(flags.is_active, true)),
   });
 
   if (!flags) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Lock, LogOut } from "lucide-react";
+import { Lock, LogOut } from "lucide-react";
 import {
   Dialog,
   DialogContent,
