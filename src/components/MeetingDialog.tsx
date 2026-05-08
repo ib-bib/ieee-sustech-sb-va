@@ -31,10 +31,27 @@ import { CalendarIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { cn } from "~/lib/utils";
 
+export interface MeetingFormData {
+  title: string;
+  description?: string;
+  date: Date;
+  meetLink: string;
+  status: string;
+}
+
+export interface MeetingData {
+  id: number;
+  title: string | null;
+  description: string | null;
+  startTime: Date | null;
+  meetingCode: string | null;
+  status: string | null;
+}
+
 interface MeetingDialogProps {
-  meeting: any;
+  meeting: MeetingData | null;
   open: boolean;
-  onSave: (data: any) => void;
+  onSave: (data: MeetingFormData) => void;
   onOpenChange: (open: boolean) => void;
 }
 
@@ -44,13 +61,13 @@ export function MeetingDialog({
   onSave,
   onOpenChange,
 }: MeetingDialogProps) {
-  const { control, register, handleSubmit, reset, setValue, watch } = useForm();
+  const { control, register, handleSubmit, reset, setValue, watch } = useForm<MeetingFormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const statusValue = watch("status") ?? "";
 
-  const onSubmit = handleSubmit((data: any) => {
+  const onSubmit = handleSubmit((data) => {
     setIsSubmitting(true);
     onSave({
       title: data.title,
@@ -167,9 +184,9 @@ export function MeetingDialog({
                           field.onChange(date); // Update the form state
                           setIsCalendarOpen(false); // Close the popover
                         }}
-                        // disabled={(date) =>
-                        //   date < new Date() || date < new Date("1900-01-01")
-                        // }
+                      // disabled={(date) =>
+                      //   date < new Date() || date < new Date("1900-01-01")
+                      // }
                       />
                     </PopoverContent>
                   </Popover>

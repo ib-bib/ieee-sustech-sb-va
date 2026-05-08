@@ -13,7 +13,7 @@ async function getReportForCode(targetCode: string) {
 
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials(authClient.credentials);
-  const meet = google.meet({ version: "v2", auth: oauth2Client as any });
+  const meet = google.meet({ version: "v2", auth: oauth2Client });
 
   try {
     console.log(`--- Resolving Meeting Code: ${targetCode} ---`);
@@ -101,8 +101,9 @@ async function getReportForCode(targetCode: string) {
         `👤 ${name.padEnd(25)} | ⏱️  ${pMins}m ${pSecs}s (${percentage}%)`,
       );
     }
-  } catch (err: any) {
-    console.error("\n❌ Error:", err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("\n❌ Error:", message);
   }
 }
 

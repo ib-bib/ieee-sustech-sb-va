@@ -22,10 +22,25 @@ import { SelectGroup } from "@radix-ui/react-select";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
 
+interface TeamMemberData {
+  id: string;
+  name: string;
+  email: string;
+  roleId: number;
+  joinDate?: string | null;
+}
+
+interface TeamMemberFormData {
+  name: string;
+  email: string;
+  roleId: string;
+  joinDate: string;
+}
+
 interface TeamMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  member: any;
+  member: TeamMemberData | null;
 }
 
 export function TeamMemberDialog({
@@ -33,8 +48,8 @@ export function TeamMemberDialog({
   onOpenChange,
   member,
 }: TeamMemberDialogProps) {
-  const { register, handleSubmit, reset, setValue, watch } = useForm();
-  const utils = api.useContext();
+  const { register, handleSubmit, reset, setValue, watch } = useForm<TeamMemberFormData>();
+  const utils = api.useUtils();
   const { data: roles = [], isLoading: rolesLoading } =
     api.user.roles.useQuery();
 
@@ -90,7 +105,7 @@ export function TeamMemberDialog({
           </DialogTitle>
         </DialogHeader>
         <form
-          onSubmit={handleSubmit((data: any) => {
+          onSubmit={handleSubmit((data) => {
             const payload = {
               name: data.name,
               email: data.email,
@@ -100,7 +115,7 @@ export function TeamMemberDialog({
             if (member?.id) {
               updateUserMutation.mutate({ id: member.id, ...payload });
             } else {
-              createUserMutation.mutate(payload as any);
+              createUserMutation.mutate(payload);
             }
           })}
         >
@@ -139,7 +154,7 @@ export function TeamMemberDialog({
                     {rolesLoading ? (
                       <SelectItem value="">Loading...</SelectItem>
                     ) : (
-                      roles.map((r: any) => (
+                      roles.map((r) => (
                         <SelectItem key={r.id} value={String(r.id)}>
                           {r.name}
                         </SelectItem>

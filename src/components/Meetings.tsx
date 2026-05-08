@@ -5,17 +5,9 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Input } from "./ui/input";
 import { Plus, Search, Calendar, Pencil } from "lucide-react";
-import { MeetingDialog } from "./MeetingDialog";
+import { MeetingDialog, type MeetingFormData } from "./MeetingDialog";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
-
-type Meeting = {
-  id: number;
-  title: string;
-  description?: string;
-  date: string;
-  meetLink?: string;
-};
 
 export default function Meetings() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,7 +26,7 @@ export default function Meetings() {
     },
   });
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: MeetingFormData) => {
     const loadingToast = toast.loading("Creating meeting...");
 
     createMeetingMutation.mutate(
@@ -43,7 +35,7 @@ export default function Meetings() {
         description: data.description,
         startTime: data.date.toISOString(),
         link: data.meetLink,
-        status: data.status,
+        status: data.status as "scheduled" | "started" | "ended",
       },
       {
         onSettled: () => toast.dismiss(loadingToast),
@@ -218,7 +210,7 @@ export default function Meetings() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSave={handleSave}
-        meeting={""}
+        meeting={null}
       />
     </div>
   );

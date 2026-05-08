@@ -22,7 +22,7 @@ export async function GET(
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
@@ -102,7 +102,7 @@ export async function PUT(
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
@@ -215,7 +215,7 @@ export async function DELETE(
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }

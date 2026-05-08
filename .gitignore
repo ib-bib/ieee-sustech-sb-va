@@ -51,3 +51,5 @@ yarn-error.log*
 credentials.json
 
 MOBILE_API_DOCUMENTATION.md
+
+bun.lock

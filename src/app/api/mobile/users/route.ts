@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }

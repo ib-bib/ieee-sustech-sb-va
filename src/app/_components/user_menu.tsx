@@ -125,9 +125,7 @@ export function UserMenu({
                 id="current"
                 type="password"
                 value={currentPassword}
-                onChange={(e) =>
-                  setCurrentPassword((e.target as HTMLInputElement).value)
-                }
+                onChange={(e) => setCurrentPassword(e.target.value)}
               />
             </div>
 
@@ -137,9 +135,7 @@ export function UserMenu({
                 id="new"
                 type="password"
                 value={newPassword}
-                onChange={(e) =>
-                  setNewPassword((e.target as HTMLInputElement).value)
-                }
+                onChange={(e) => setNewPassword(e.target.value)}
               />
             </div>
 
@@ -149,9 +145,7 @@ export function UserMenu({
                 id="confirm"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) =>
-                  setConfirmPassword((e.target as HTMLInputElement).value)
-                }
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
           </div>

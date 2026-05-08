@@ -24,9 +24,10 @@ type Member = {
   id: string;
   name: string;
   email: string;
-  role?: string | null;
-  joinDate?: string | null;
-  isActive?: boolean;
+  roleId: number;
+  role: string;
+  joinDate: string;
+  isActive: boolean;
 };
 
 export function TeamMembers() {
@@ -36,7 +37,7 @@ export function TeamMembers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
 
-  const utils = api.useContext();
+  const utils = api.useUtils();
   const { data: members = [], isLoading } = api.user.getAll.useQuery();
   const deactivateMutation = api.user.deactivate.useMutation({
     onSuccess: async () => {
@@ -152,7 +153,15 @@ export function TeamMembers() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setEditingMember(member as Member);
+                          setEditingMember({
+                            id: member.id,
+                            name: member.name ?? "",
+                            email: member.email,
+                            roleId: member.roleId,
+                            role: member.role ?? "",
+                            joinDate: member.joinDate ?? "",
+                            isActive: member.isActive ?? false,
+                          });
                           setDialogOpen(true);
                         }}
                       >
@@ -162,7 +171,15 @@ export function TeamMembers() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setMemberToDelete(member as Member);
+                          setMemberToDelete({
+                            id: member.id,
+                            name: member.name ?? "",
+                            email: member.email,
+                            roleId: member.roleId,
+                            role: member.role ?? "",
+                            joinDate: member.joinDate ?? "",
+                            isActive: member.isActive ?? false,
+                          });
                           setDeleteDialogOpen(true);
                         }}
                       >

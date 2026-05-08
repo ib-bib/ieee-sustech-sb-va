@@ -9,7 +9,7 @@ const compat = new FlatCompat({
 
 export default tseslint.config(
   {
-    ignores: [".next"],
+    ignores: [".next", "node_modules", "dist", "build", "coverage", "public", "**/*.min.js"],
   },
   ...compat.extends("next/core-web-vitals"),
   {
@@ -24,8 +24,10 @@ export default tseslint.config(
     ],
     rules: {
       "@typescript-eslint/array-type": "off",
-      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/no-unnecessary-type-assertion": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-imports": [
         "warn",
         { prefer: "type-imports", fixStyle: "inline-type-imports" },

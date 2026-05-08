@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
     if (!user || response) {
       return (
-        response ||
+        response ??
         NextResponse.json({ error: "Unauthorized" }, { status: 401 })
       );
     }
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     // Extract meeting code from link
     const meetingCode =
-      link.split("/").pop()?.split("?")[0] || `meet-${Date.now()}`;
+      link.split("/").pop()?.split("?")[0] ?? `meet-${Date.now()}`;
 
     // Create meeting
     const createdMeetings = await db
