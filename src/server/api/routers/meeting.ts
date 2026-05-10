@@ -149,4 +149,34 @@ export const meetingRouter = createTRPCRouter({
 
     return result;
   }),
+
+  getMeetingByID: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const meeting = await ctx.db.query.meetings.findFirst({
+        where: eq(meetings.id, input.id),
+      });
+      if (!meeting) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Meeting not found",
+        });
+      }
+      return meeting;
+    }),
+
+  getMeetingByCode: protectedProcedure
+    .input(z.object({ meetingCode: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const meeting = await ctx.db.query.meetings.findFirst({
+        where: eq(meetings.meetingCode, input.meetingCode),
+      });
+      if (!meeting) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Meeting not found",
+        });
+      }
+      return meeting;
+    }),
 });

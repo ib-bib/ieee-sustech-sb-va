@@ -1,4 +1,4 @@
-import Meetings from "../../../components/Meetings";
+import Meetings from "~/components/Meetings";
 
 export default function HRMeetings() {
   return (

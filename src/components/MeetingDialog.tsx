@@ -61,7 +61,8 @@ export function MeetingDialog({
   onSave,
   onOpenChange,
 }: MeetingDialogProps) {
-  const { control, register, handleSubmit, reset, setValue, watch } = useForm<MeetingFormData>();
+  const { control, register, handleSubmit, reset, setValue, watch } =
+    useForm<MeetingFormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -86,7 +87,7 @@ export function MeetingDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>{meeting ? "Edit Meeting" : "Add Meeting"}</DialogTitle>
           <DialogDescription>
@@ -184,9 +185,9 @@ export function MeetingDialog({
                           field.onChange(date); // Update the form state
                           setIsCalendarOpen(false); // Close the popover
                         }}
-                      // disabled={(date) =>
-                      //   date < new Date() || date < new Date("1900-01-01")
-                      // }
+                        // disabled={(date) =>
+                        //   date < new Date() || date < new Date("1900-01-01")
+                        // }
                       />
                     </PopoverContent>
                   </Popover>
