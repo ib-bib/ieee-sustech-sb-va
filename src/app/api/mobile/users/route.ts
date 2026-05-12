@@ -207,8 +207,8 @@ export async function POST(req: NextRequest) {
         from: `"IEEE SUSTech SB" ${env.EMAIL_ADDRESS}`,
         to: email,
         subject: "Account Created",
-        text: `Your account has been created. Please login at ${URL}/login and set your password.`,
-        html: `Your account has been created. Please login at <a href="${URL}/login">${URL}/login</a> and set your password.`,
+        text: `Welcome! Your account has been created\nPlease use the following credentials to login, then change your password\nPassword: ${tempPassword}\nLogin: ${URL}/login`,
+        html: `Welcome! Your account has been created<br />Please use the following credentials to login, then change your password<br /><b>Password: ${tempPassword}</b><br />Login: <a href="${URL}/login">${URL}/login</a>`, // HTML body
       });
     } catch (err) {
       console.error("Error sending email:", err);
