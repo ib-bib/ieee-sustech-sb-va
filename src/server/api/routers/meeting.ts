@@ -17,6 +17,10 @@ export const meetingRouter = createTRPCRouter({
         env.GOOGLE_CLIENT_SECRET,
       );
 
+      oauth2Client.setCredentials({
+        refresh_token: env.GOOGLE_REFRESH_TOKEN,
+      });
+
       const meet = google.meet({ version: "v2", auth: oauth2Client });
 
       const meetingCode = input.link.split("/").pop()?.split("?")[0];
@@ -187,6 +191,10 @@ export const meetingRouter = createTRPCRouter({
         env.GOOGLE_CLIENT_ID,
         env.GOOGLE_CLIENT_SECRET,
       );
+
+      oauth2Client.setCredentials({
+        refresh_token: env.GOOGLE_REFRESH_TOKEN,
+      });
 
       const meet = google.meet({ version: "v2", auth: oauth2Client });
 
