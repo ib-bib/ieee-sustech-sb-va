@@ -43,7 +43,7 @@ export function NotificationsMenu() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button className="group relative flex size-8 items-center justify-center rounded-full bg-blue-500 shadow-2xl transition-all hover:cursor-pointer hover:bg-blue-800 active:scale-90">
+        <Button className="group relative flex size-8 items-center justify-center rounded-full bg-blue-500 shadow-2xl transition-all hover:bg-blue-800 active:scale-90">
           <BellIcon className="size-6 text-white" />
           {hasUnread && (
             <span className="absolute top-1 right-1 block size-2 rounded-full bg-red-500 ring-2 ring-white" />

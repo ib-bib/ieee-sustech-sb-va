@@ -185,9 +185,9 @@ export function MeetingDialog({
                           field.onChange(date); // Update the form state
                           setIsCalendarOpen(false); // Close the popover
                         }}
-                        // disabled={(date) =>
-                        //   date < new Date() || date < new Date("1900-01-01")
-                        // }
+                      // disabled={(date) =>
+                      //   date < new Date() || date < new Date("1900-01-01")
+                      // }
                       />
                     </PopoverContent>
                   </Popover>
@@ -218,7 +218,6 @@ export function MeetingDialog({
               Cancel
             </Button>
             <Button
-              className="cursor-pointer"
               type="submit"
               disabled={isSubmitting}
             >

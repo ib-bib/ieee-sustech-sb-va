@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import WhiteSpinner from "~/app/_components/white_spinner";
 import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -113,24 +114,24 @@ export default function ForgotPassword() {
           )}
         </div>
 
-        <button
+        <Button
           onClick={step === "request" ? handleSendOtp : handleVerifyOtp}
           disabled={loading || !email || (step === "verify" && !otp)}
-          className="flex h-14 w-64 items-center justify-center gap-2 rounded-2xl bg-[#00629B] p-2 text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:scale-90 active:bg-[#004D7A] disabled:bg-[#B3E5F2]"
+          className="flex h-14 w-64 items-center justify-center gap-2 rounded-2xl bg-[#00629B] p-2 text-neutral-50 transition-all hover:bg-[#00629B] active:scale-90 active:bg-[#004D7A] disabled:bg-[#B3E5F2]"
           type="button"
         >
           {loading && <WhiteSpinner />}
           {!loading && (step === "request" ? "Send OTP" : "Verify OTP")}
-        </button>
+        </Button>
 
         {step === "verify" && (
-          <button
+          <Button
             type="button"
             onClick={handleSendOtp}
-            className="cursor-pointer text-sm text-[#00629B] underline"
+            className="text-sm text-[#00629B] underline"
           >
             Resend OTP
-          </button>
+          </Button>
         )}
       </div>
     </main>

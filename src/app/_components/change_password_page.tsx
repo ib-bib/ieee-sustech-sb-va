@@ -12,6 +12,8 @@ import {
 import WhiteSpinner from "./white_spinner";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
@@ -84,7 +86,7 @@ export default function ChangePassword() {
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
               />
-              <button
+              <Button
                 onClick={() => setOldPassShowing(!oldPassShowing)}
                 type="button"
                 className="flex h-6 w-6 items-center justify-center"
@@ -97,14 +99,14 @@ export default function ChangePassword() {
                 ) : (
                   <EyeSlashIcon className="h-5 w-5" />
                 )}
-              </button>
+              </Button>
             </div>
           </div>
           <div>
             <label htmlFor="newPassword">Password</label>
             <div className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-300 p-3">
               <LockClosedIcon className="size-5" />
-              <input
+              <Input
                 name="newPassword"
                 className="outline-none"
                 placeholder="New Password"
@@ -112,7 +114,7 @@ export default function ChangePassword() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
-              <button
+              <Button
                 onClick={() => setPassword1Showing(!password1Showing)}
                 type="button"
                 className="flex h-6 w-6 items-center justify-center"
@@ -125,7 +127,7 @@ export default function ChangePassword() {
                 ) : (
                   <EyeSlashIcon className="h-5 w-5" />
                 )}
-              </button>
+              </Button>
             </div>
           </div>
           <div>
@@ -140,7 +142,7 @@ export default function ChangePassword() {
                 value={confirmedPassword}
                 onChange={(e) => setConfirmedPassword(e.target.value)}
               />
-              <button
+              <Button
                 onClick={() => setPassword2Showing(!password2Showing)}
                 type="button"
                 className="flex h-6 w-6 items-center justify-center"
@@ -153,19 +155,19 @@ export default function ChangePassword() {
                 ) : (
                   <EyeSlashIcon className="h-5 w-5" />
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
-        <button
+        <Button
           onClick={handlePasswordUpdate}
           disabled={loading}
-          className="flex h-14 w-50 items-center justify-center gap-2 rounded-2xl bg-[#00B5E2] p-2 text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:scale-90 active:bg-[#004D7A] disabled:bg-[#B3E5F2]"
+          className="flex h-14 w-50 items-center justify-center gap-2 rounded-2xl bg-[#00B5E2] p-2 text-neutral-50 transition-all hover:bg-[#00629B] active:scale-90 active:bg-[#004D7A] disabled:bg-[#B3E5F2]"
           type="button"
         >
           {loading && <WhiteSpinner />}
           {!loading && "Update Password"}
-        </button>
+        </Button>
       </div>
     </main>
   );

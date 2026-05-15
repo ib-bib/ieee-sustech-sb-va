@@ -3,8 +3,8 @@ import Link from "next/link";
 import { FlagsCard } from "~/app/_components/flags_card";
 import { CertCard } from "~/app/_components/cert_card";
 import RatingsCard from "~/app/_components/ratings_card";
-import { NotificationsMenu } from "../_components/notifications_menu";
-import { AccountMenu } from "../_components/account_menu";
+import { NotificationsMenu } from "~/app/_components/notifications_menu";
+import { UserMenu } from "~/app/_components/user_menu";
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 
@@ -34,7 +34,7 @@ export default async function Dash() {
         </div>
         <div className="flex h-full items-center justify-end gap-4">
           <NotificationsMenu />
-          <AccountMenu username={session?.user.name ?? "Server Error"} />
+          <UserMenu username={session?.user.name ?? "Server Error"} />
         </div>
       </nav>
       <section className="flex w-full grow flex-wrap items-center justify-center gap-6 py-6">

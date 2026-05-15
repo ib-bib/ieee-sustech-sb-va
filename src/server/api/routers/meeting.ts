@@ -1,9 +1,9 @@
 // src/server/api/routers/meeting.ts
 import { z } from "zod";
 import { google } from "googleapis";
-import { formatDuration } from "../../../lib/utils";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { meetings } from "../../db/schema";
+import { formatDuration } from "~/lib/utils";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { meetings } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
@@ -11,14 +11,31 @@ import { env } from "~/env";
 export const meetingRouter = createTRPCRouter({
   testSync: protectedProcedure
     .input(z.object({ link: z.string().url() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
+      const account = await ctx.db.query.accounts.findFirst({
+        where: (accounts, { eq, and }) =>
+          and(
+            eq(accounts.userId, ctx.session.user.id),
+            eq(accounts.provider, "google"),
+          ),
+      });
+
+      if (!account || !account.refresh_token) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must connect your Google Account first.",
+        });
+      }
+
       const oauth2Client = new google.auth.OAuth2(
         env.GOOGLE_CLIENT_ID,
         env.GOOGLE_CLIENT_SECRET,
       );
 
       oauth2Client.setCredentials({
-        refresh_token: env.GOOGLE_REFRESH_TOKEN,
+        access_token: account.access_token ?? undefined,
+        refresh_token: account.refresh_token,
+        expiry_date: account.expires_at ? account.expires_at * 1000 : undefined,
       });
 
       const meet = google.meet({ version: "v2", auth: oauth2Client });
@@ -186,14 +203,31 @@ export const meetingRouter = createTRPCRouter({
 
   getAttendanceReport: protectedProcedure
     .input(z.object({ meetingCode: z.string() }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      const account = await ctx.db.query.accounts.findFirst({
+        where: (accounts, { eq, and }) =>
+          and(
+            eq(accounts.userId, ctx.session.user.id),
+            eq(accounts.provider, "google"),
+          ),
+      });
+
+      if (!account || !account.refresh_token) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must connect your Google Account first to view reports.",
+        });
+      }
+
       const oauth2Client = new google.auth.OAuth2(
         env.GOOGLE_CLIENT_ID,
         env.GOOGLE_CLIENT_SECRET,
       );
 
       oauth2Client.setCredentials({
-        refresh_token: env.GOOGLE_REFRESH_TOKEN,
+        access_token: account.access_token ?? undefined,
+        refresh_token: account.refresh_token,
+        expiry_date: account.expires_at ? account.expires_at * 1000 : undefined,
       });
 
       const meet = google.meet({ version: "v2", auth: oauth2Client });
@@ -225,21 +259,39 @@ export const meetingRouter = createTRPCRouter({
         });
       }
 
-      // 3. Use the most recent record
-      const record = matchingRecords[0];
-      const resourceName = record.name!;
+      // 3. Find the most recent record that actually has participants
+      // (Google Meet creates empty records if someone clicks the link but doesn't fully join)
+      let targetRecord = matchingRecords[0]!;
+      let participants: any[] = [];
+      let resourceName = targetRecord.name!;
 
-      const mStart = new Date(record.startTime!).getTime();
-      const mEnd = record.endTime
-        ? new Date(record.endTime).getTime()
+      for (const record of matchingRecords) {
+        const participantsRes = await meet.conferenceRecords.participants.list({
+          parent: record.name!,
+        });
+        const pList = participantsRes.data.participants ?? [];
+
+        if (pList.length > 0) {
+          targetRecord = record;
+          participants = pList;
+          resourceName = record.name!;
+          break;
+        }
+      }
+
+      const mStart = new Date(targetRecord.startTime!).getTime();
+      const mEnd = targetRecord.endTime
+        ? new Date(targetRecord.endTime).getTime()
         : Date.now();
       const totalMeetingMillis = mEnd - mStart;
 
-      // 4. List participants and compute per-participant duration
-      const participantsRes = await meet.conferenceRecords.participants.list({
-        parent: resourceName,
+      // Fetch all Google accounts in the DB to map internal users
+      const allGoogleAccounts = await ctx.db.query.accounts.findMany({
+        where: (accounts, { eq }) => eq(accounts.provider, "google"),
       });
-      const participants = participantsRes.data.participants ?? [];
+
+      // Fetch internal users to get their actual names
+      const internalUsers = await ctx.db.query.users.findMany();
 
       const participantReports = await Promise.all(
         participants.map(async (p) => {
@@ -261,12 +313,10 @@ export const meetingRouter = createTRPCRouter({
           const percentage =
             totalMeetingMillis > 0
               ? parseFloat(
-                  ((pMillis / totalMeetingMillis) * 100).toFixed(2),
-                )
+                ((pMillis / totalMeetingMillis) * 100).toFixed(2),
+              )
               : 0;
 
-          // Schema$SignedinUser does not expose `email` in its TypeScript types,
-          // but the underlying REST API may return it. We cast to access it.
           type SignedinUserWithEmail = {
             displayName?: string | null;
             user?: string | null;
@@ -274,27 +324,40 @@ export const meetingRouter = createTRPCRouter({
           };
           const signedIn = p.signedinUser as SignedinUserWithEmail | null | undefined;
 
+          // Try to map the Google User ID to an internal user
+          // Google Meet returns user resource names like "users/104382348324832"
+          const googleUserId = signedIn?.user?.split("/").pop();
+
+          const linkedAccount = allGoogleAccounts.find(
+            (acc) => acc.providerAccountId === googleUserId,
+          );
+
+          const internalUser = linkedAccount
+            ? internalUsers.find((u) => u.id === linkedAccount.userId)
+            : null;
+
           return {
-            // email comes from the runtime REST response; may be null for
-            // personal accounts or anonymous participants.
             email: signedIn?.email ?? null,
             displayName:
               signedIn?.displayName ??
               p.anonymousUser?.displayName ??
               "Unknown Guest",
-            // user resource name (e.g. "users/1234...") as a stable identifier
             userResourceName: signedIn?.user ?? null,
             duration: formatDuration(pMillis),
             durationMillis: pMillis,
             percentage,
             sessionCount: sessions.length,
+            // Add internal user data if we found a match!
+            internalUserId: internalUser?.id ?? null,
+            internalUserName: internalUser?.name ?? null,
+            internalUserRole: internalUser?.roleId ?? null,
           };
         }),
       );
 
       return {
-        meetingStartTime: record.startTime ?? null,
-        meetingEndTime: record.endTime ?? null,
+        meetingStartTime: targetRecord.startTime ?? null,
+        meetingEndTime: targetRecord.endTime ?? null,
         totalDuration: formatDuration(totalMeetingMillis),
         participants: participantReports,
       };
