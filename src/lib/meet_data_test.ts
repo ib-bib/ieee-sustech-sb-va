@@ -11,6 +11,11 @@ async function getReportForCode(targetCode: string) {
     keyfilePath: CREDENTIALS_PATH,
   });
 
+  console.log("\n=======================================");
+  console.log("YOUR REFRESH TOKEN IS:");
+  console.log(authClient.credentials.refresh_token);
+  console.log("=======================================\n");
+
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials(authClient.credentials);
   const meet = google.meet({ version: "v2", auth: oauth2Client });

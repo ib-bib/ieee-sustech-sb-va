@@ -15,6 +15,7 @@ import { signIn, getSession } from "next-auth/react";
 import WhiteSpinner from "~/app/_components/white_spinner";
 import Link from "next/link";
 import { toast } from "sonner";
+import { Button } from "~/components/ui/button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -117,15 +118,15 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-        <button
+        <Button
           disabled={loading || !email || !password}
-          className="flex h-10 w-30 items-center justify-center gap-1 rounded-2xl bg-[#00B5E2] text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:bg-[#002855] disabled:cursor-not-allowed disabled:hover:bg-[#00B5E2] disabled:active:scale-100 disabled:active:bg-[#00B5E2]"
+          className="flex h-10 w-30 items-center justify-center gap-1 rounded-2xl bg-[#00B5E2] text-neutral-50 transition-all hover:bg-[#00629B] active:bg-[#002855] disabled:cursor-not-allowed disabled:hover:bg-[#00B5E2] disabled:active:scale-100 disabled:active:bg-[#00B5E2]"
           type="submit"
         >
           {loading && <WhiteSpinner />}
           {validUser && !loading && <CheckIcon className="size-5" />}
           {!loading && !validUser && "Log in"}
-        </button>
+        </Button>
         <div className="flex w-full items-center justify-center py-2">
           <Link
             href="/forgot_password"

@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { Button } from "~/components/ui/button";
 
 interface Notification {
   id: string;
@@ -28,52 +29,52 @@ export function NotificationBell({ userRole }: NotificationBellProps) {
   const mockNotifications: Notification[] =
     userRole === "HR Leader"
       ? [
-          {
-            id: "1",
-            from: "President",
-            message: "Please review the new team member applications",
-            timestamp: "2 hours ago",
-            read: false,
-          },
-          {
-            id: "2",
-            from: "Vice President",
-            message: "Analytics report for Q1 is ready",
-            timestamp: "5 hours ago",
-            read: false,
-          },
-          {
-            id: "3",
-            from: "Secretary",
-            message: "Meeting minutes have been updated",
-            timestamp: "1 day ago",
-            read: true,
-          },
-        ]
+        {
+          id: "1",
+          from: "President",
+          message: "Please review the new team member applications",
+          timestamp: "2 hours ago",
+          read: false,
+        },
+        {
+          id: "2",
+          from: "Vice President",
+          message: "Analytics report for Q1 is ready",
+          timestamp: "5 hours ago",
+          read: false,
+        },
+        {
+          id: "3",
+          from: "Secretary",
+          message: "Meeting minutes have been updated",
+          timestamp: "1 day ago",
+          read: true,
+        },
+      ]
       : [
-          {
-            id: "1",
-            from: "HR Leader",
-            message: "Your leave request has been approved",
-            timestamp: "1 hour ago",
-            read: false,
-          },
-          {
-            id: "2",
-            from: "HR Leader",
-            message: "Team meeting scheduled for tomorrow at 10 AM",
-            timestamp: "3 hours ago",
-            read: false,
-          },
-        ];
+        {
+          id: "1",
+          from: "HR Leader",
+          message: "Your leave request has been approved",
+          timestamp: "1 hour ago",
+          read: false,
+        },
+        {
+          id: "2",
+          from: "HR Leader",
+          message: "Team meeting scheduled for tomorrow at 10 AM",
+          timestamp: "3 hours ago",
+          read: false,
+        },
+      ];
 
   const unreadCount = mockNotifications.filter((n) => !n.read).length;
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setOpen(true)}
-        className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-100"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-gray-100"
       >
         <Bell className="h-5 w-5 text-gray-700" />
         {unreadCount > 0 && (
@@ -81,7 +82,7 @@ export function NotificationBell({ userRole }: NotificationBellProps) {
             {unreadCount}
           </span>
         )}
-      </button>
+      </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -89,9 +90,8 @@ export function NotificationBell({ userRole }: NotificationBellProps) {
             <DialogTitle>Notifications</DialogTitle>
             <DialogDescription>
               {unreadCount > 0
-                ? `You have ${unreadCount} unread notification${
-                    unreadCount > 1 ? "s" : ""
-                  }`
+                ? `You have ${unreadCount} unread notification${unreadCount > 1 ? "s" : ""
+                }`
                 : "All caught up!"}
             </DialogDescription>
           </DialogHeader>
@@ -105,11 +105,10 @@ export function NotificationBell({ userRole }: NotificationBellProps) {
               mockNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`rounded-lg border p-4 transition-colors ${
-                    notification.read
-                      ? "border-gray-200 bg-white"
-                      : "border-blue-200 bg-blue-50"
-                  }`}
+                  className={`rounded-lg border p-4 transition-colors ${notification.read
+                    ? "border-gray-200 bg-white"
+                    : "border-blue-200 bg-blue-50"
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import WhiteSpinner from "~/app/_components/white_spinner";
 import { api } from "~/trpc/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { Button } from "~/components/ui/button";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -107,15 +108,15 @@ export default function ResetPasswordPage() {
             </div>
           </div>
         </div>
-        <button
+        <Button
           onClick={handleResetPassword}
           disabled={loading || !newPassword || !confirmedPassword}
-          className="flex h-14 w-50 items-center justify-center gap-2 rounded-2xl bg-[#00B5E2] p-2 text-neutral-50 transition-all hover:cursor-pointer hover:bg-[#00629B] active:scale-90 active:bg-[#002855] disabled:bg-[#002855]"
+          className="flex h-14 w-50 items-center justify-center gap-2 rounded-2xl bg-[#00B5E2] p-2 text-neutral-50 transition-all hover:bg-[#00629B] active:bg-[#002855] disabled:bg-[#002855]"
           type="button"
         >
           {loading && <WhiteSpinner />}
           {!loading && "Reset Password"}
-        </button>
+        </Button>
       </div>
     </main>
   );

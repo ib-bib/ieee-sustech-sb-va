@@ -103,7 +103,6 @@ export default function Meetings() {
           </p>
         </div>
         <Button
-          className="cursor-pointer"
           onClick={() => {
             setDialogOpen(true);
           }}

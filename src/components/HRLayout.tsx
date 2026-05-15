@@ -14,7 +14,7 @@ import {
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { NotificationBell } from "~/app/_components/notification_bell";
-import { UserMenu } from "~/app/_components/user_menu";
+import { UserMenu } from "~/app/_components/hr_user_menu";
 import { AnimatedBackground } from "~/app/_components/animated_background";
 import Image from "next/image";
 
@@ -152,9 +152,9 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
 
           {/* Collapse Button Area */}
           <div className="hidden border-t border-[#004d70] p-4 lg:block">
-            <button
+            <Button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="group flex h-12 w-full cursor-pointer items-center justify-center rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20"
+              className="group flex h-12 w-full items-center justify-center rounded-lg bg-white/10 text-white transition-colors hover:bg-white/20"
             >
               <div
                 className={cn(
@@ -176,7 +176,7 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
               >
                 Collapse
               </span>
-            </button>
+            </Button>
           </div>
         </aside>
 
