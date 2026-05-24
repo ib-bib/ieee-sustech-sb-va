@@ -7,26 +7,6 @@ import { and, eq } from "drizzle-orm";
 import { accounts } from "~/server/db/schema";
 import { formatDuration } from "~/lib/utils";
 
-interface ParticipantReport {
-  email: string | null;
-  displayName: string;
-  userResourceName: string | null;
-  duration: string;
-  durationMillis: number;
-  percentage: number;
-  sessionCount: number;
-  internalUserId: string | null;
-  internalUserName: string | null;
-  internalUserRole: number | null;
-}
-
-interface AttendanceReport {
-  meetingStartTime: string | null;
-  meetingEndTime: string | null;
-  totalDuration: string;
-  participants: ParticipantReport[];
-}
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -52,7 +32,7 @@ export async function GET(
     }
 
     const allUserGoogleAccounts = await db.query.accounts.findMany({
-      where: (accounts: { userId: any; provider: any }, { eq, and }: any) =>
+      where: (accounts, { eq, and }) =>
         and(eq(accounts.userId, authUser.id), eq(accounts.provider, "google")),
     });
 
@@ -97,7 +77,9 @@ export async function GET(
     // Force token refresh if the access token is expired or about to expire
     const expiryDate = account.expires_at ? account.expires_at * 1000 : 0;
     if (Date.now() >= expiryDate - 60_000) {
-      console.log(`[Attendance] Access token expired or expiring soon, refreshing...`);
+      console.log(
+        `[Attendance] Access token expired or expiring soon, refreshing...`,
+      );
       try {
         const { credentials } = await oauth2Client.refreshAccessToken();
         oauth2Client.setCredentials(credentials);
@@ -177,15 +159,15 @@ export async function GET(
 
     for (const record of matchingRecords) {
       console.log(`[Attendance] Checking record: ${record.name}`);
-      console.log(`[Attendance]   startTime: ${record.startTime}, endTime: ${record.endTime}`);
+      console.log(
+        `[Attendance]   startTime: ${record.startTime}, endTime: ${record.endTime}`,
+      );
       try {
         const participantsRes = await meet.conferenceRecords.participants.list({
           parent: record.name!,
         });
         const pList = participantsRes.data.participants ?? [];
-        console.log(
-          `[Attendance] HTTP status: ${participantsRes.status}`,
-        );
+        console.log(`[Attendance] HTTP status: ${participantsRes.status}`);
         console.log(
           `[Attendance] Response keys: ${JSON.stringify(Object.keys(participantsRes.data))}`,
         );
@@ -218,8 +200,7 @@ export async function GET(
 
     // Fetch all Google accounts in the DB to map internal users
     const allGoogleAccounts = await db.query.accounts.findMany({
-      where: (accounts: { provider: any }, { eq }: any) =>
-        eq(accounts.provider, "google"),
+      where: (accounts, { eq }) => eq(accounts.provider, "google"),
     });
 
     // Fetch internal users to get their actual names

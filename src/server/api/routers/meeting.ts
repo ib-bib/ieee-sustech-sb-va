@@ -1,6 +1,6 @@
 // src/server/api/routers/meeting.ts
 import { z } from "zod";
-import { google } from "googleapis";
+import { google, type meet_v2 } from "googleapis";
 import { formatDuration } from "~/lib/utils";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { meetings } from "~/server/db/schema";
@@ -20,7 +20,7 @@ export const meetingRouter = createTRPCRouter({
           ),
       });
 
-      if (!account || !account.refresh_token) {
+      if (!account?.refresh_token) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "You must connect your Google Account first.",
@@ -212,10 +212,11 @@ export const meetingRouter = createTRPCRouter({
           ),
       });
 
-      if (!account || !account.refresh_token) {
+      if (!account?.refresh_token) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "You must connect your Google Account first to view reports.",
+          message:
+            "You must connect your Google Account first to view reports.",
         });
       }
 
@@ -262,8 +263,7 @@ export const meetingRouter = createTRPCRouter({
       // 3. Find the most recent record that actually has participants
       // (Google Meet creates empty records if someone clicks the link but doesn't fully join)
       let targetRecord = matchingRecords[0]!;
-      let participants: any[] = [];
-      let resourceName = targetRecord.name!;
+      let participants: meet_v2.Schema$Participant[] = [];
 
       for (const record of matchingRecords) {
         const participantsRes = await meet.conferenceRecords.participants.list({
@@ -274,7 +274,6 @@ export const meetingRouter = createTRPCRouter({
         if (pList.length > 0) {
           targetRecord = record;
           participants = pList;
-          resourceName = record.name!;
           break;
         }
       }
@@ -304,17 +303,13 @@ export const meetingRouter = createTRPCRouter({
           let pMillis = 0;
           sessions.forEach((s) => {
             const sStart = new Date(s.startTime!).getTime();
-            const sEnd = s.endTime
-              ? new Date(s.endTime).getTime()
-              : Date.now();
+            const sEnd = s.endTime ? new Date(s.endTime).getTime() : Date.now();
             pMillis += sEnd - sStart;
           });
 
           const percentage =
             totalMeetingMillis > 0
-              ? parseFloat(
-                ((pMillis / totalMeetingMillis) * 100).toFixed(2),
-              )
+              ? parseFloat(((pMillis / totalMeetingMillis) * 100).toFixed(2))
               : 0;
 
           type SignedinUserWithEmail = {
@@ -322,7 +317,10 @@ export const meetingRouter = createTRPCRouter({
             user?: string | null;
             email?: string | null;
           };
-          const signedIn = p.signedinUser as SignedinUserWithEmail | null | undefined;
+          const signedIn = p.signedinUser as
+            | SignedinUserWithEmail
+            | null
+            | undefined;
 
           // Try to map the Google User ID to an internal user
           // Google Meet returns user resource names like "users/104382348324832"
