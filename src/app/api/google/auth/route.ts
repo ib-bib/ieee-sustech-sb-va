@@ -1,9 +1,9 @@
 import { google } from "googleapis";
 import { env } from "~/env";
 import { auth } from "~/server/auth";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET(_req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return new NextResponse("Unauthorized", { status: 401 });
