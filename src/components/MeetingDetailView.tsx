@@ -7,9 +7,7 @@ import {
   ExternalLink,
   Users,
   Clock,
-  BarChart3,
   RefreshCw,
-  Mail,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
@@ -40,10 +38,23 @@ interface MeetingDetailViewProps {
   meeting: Meeting;
 }
 
+type ParticipantData = {
+  email: string | null;
+  displayName: string;
+  userResourceName: string | null;
+  duration: string;
+  durationMillis: number;
+  percentage: number;
+  sessionCount: number;
+  internalUserId: string | null;
+  internalUserName: string | null;
+  internalUserRole: number | null;
+};
+
 export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
   const [reportEnabled, setReportEnabled] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedParticipant, setSelectedParticipant] = useState<any | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<ParticipantData | null>(null);
 
   const reportQuery = api.meeting.getAttendanceReport.useQuery(
     { meetingCode: meeting.meetingCode ?? "" },
@@ -270,7 +281,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                       Registered
                     </div>
                     <p className="mt-1 text-2xl font-bold text-green-700">
-                      {reportQuery.data.participants.filter(p => p.internalUserId).length}
+                      {reportQuery.data.participants.filter((p: any) => p.internalUserId).length}
                     </p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -279,7 +290,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                       Unregistered
                     </div>
                     <p className="mt-1 text-2xl font-bold text-orange-700">
-                      {reportQuery.data.participants.filter(p => !p.internalUserId).length}
+                      {reportQuery.data.participants.filter((p: any) => !p.internalUserId).length}
                     </p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -332,14 +343,14 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                              {reportQuery.data.participants.map((p, i) => {
+                              {reportQuery.data.participants.map((p: any, i: number) => {
                                 const isGoodAttendance = p.percentage >= 75;
                                 const isRegistered = !!p.internalUserId;
 
                                 return (
                                   <tr
                                     key={i}
-                                    onClick={() => setSelectedParticipant(p)}
+                                    onClick={() => setSelectedParticipant(p as ParticipantData)}
                                     className="hover:bg-gray-50 cursor-pointer transition-colors"
                                   >
                                     <td className="py-3 pr-4">
@@ -358,7 +369,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                                         {isRegistered ? p.internalUserName : p.displayName}
                                       </div>
                                       <div className="text-xs text-gray-500">
-                                        {p.email || "Email unavailable"}
+                                        {(p as any).email ?? "Email unavailable"}
                                       </div>
                                     </td>
                                     <td className="py-3 pr-4 text-gray-700 font-medium">
@@ -369,7 +380,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                                         <div className="h-2 w-16 overflow-hidden rounded-full bg-gray-200">
                                           <div
                                             className={`h-full rounded-full ${isGoodAttendance ? "bg-green-500" : "bg-yellow-400"}`}
-                                            style={{ width: `${Math.min(p.percentage, 100)}%` }}
+                                            style={{ width: `${Math.min(p.percentage as number, 100)}%` }}
                                           />
                                         </div>
                                         <span className={`text-xs font-semibold ${isGoodAttendance ? "text-green-700" : "text-yellow-700"}`}>
@@ -409,7 +420,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                             </div>
                             <div>
                               <p className="text-gray-500">Google Email</p>
-                              <p className="font-medium">{selectedParticipant.email || "N/A"}</p>
+                              <p className="font-medium">{selectedParticipant.email ?? "N/A"}</p>
                             </div>
                             <div>
                               <p className="text-gray-500">Time in Meeting</p>
