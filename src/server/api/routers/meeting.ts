@@ -1,9 +1,9 @@
 // src/server/api/routers/meeting.ts
 import { z } from "zod";
-import { google, type meet_v2 } from "googleapis";
+import { google } from "googleapis";
 import { formatDuration } from "~/lib/utils";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { meetings, attendanceRecords } from "~/server/db/schema";
+import { meetings } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";

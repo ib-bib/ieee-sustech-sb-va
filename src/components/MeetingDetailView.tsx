@@ -306,7 +306,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                 <AlertCircle className="h-8 w-8 text-orange-500" />
                 <h3 className="text-lg font-semibold text-gray-900">Attendance Report Not Yet Fetched</h3>
                 <p className="max-w-md text-sm text-gray-500">
-                  This meeting's attendance data has not been retrieved from Google Meet yet. Only the original host can perform the initial fetch.
+                  This meeting&apos;s attendance data has not been retrieved from Google Meet yet. Only the original host can perform the initial fetch.
                 </p>
                 <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 w-full max-w-sm">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Original Host</p>

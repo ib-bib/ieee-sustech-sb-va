@@ -15,13 +15,14 @@ export async function cleanupDuplicateAttendanceRecords() {
   for (const meeting of allMeetings) {
     if (meeting.attendanceRecords.length === 0) continue;
 
-    const dedupMap = new Map();
+    type AttendanceRecord = typeof meeting.attendanceRecords[number];
+    const dedupMap = new Map<string, AttendanceRecord>();
     for (const record of meeting.attendanceRecords) {
       const key = record.userResourceName ?? record.displayName;
       if (!dedupMap.has(key)) {
         dedupMap.set(key, { ...record });
       } else {
-        const existing = dedupMap.get(key);
+        const existing = dedupMap.get(key)!;
         existing.durationMillis += record.durationMillis;
         existing.sessionCount += record.sessionCount;
         if (!existing.email && record.email) existing.email = record.email;

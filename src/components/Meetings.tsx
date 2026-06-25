@@ -208,7 +208,7 @@ export default function Meetings() {
                       </Link>
                       {meeting.meetingCode && meeting.status != "ended" && (
                         <Link
-                          href="{`[https://meet.google.com/$](https://meet.google.com/$){meeting.meetingCode}`}"
+                          href={`https://meet.google.com/${meeting.meetingCode}`}
                           target="_blank"
                           className="text-blue-600"
                         >

@@ -1,7 +1,7 @@
 import { google, type meet_v2 } from "googleapis";
 import { and, eq, or, sql } from "drizzle-orm";
 import { db } from "~/server/db";
-import { accounts, attendanceRecords, meetings, users } from "~/server/db/schema";
+import { attendanceRecords, meetings } from "~/server/db/schema";
 import { env } from "~/env";
 import { formatDuration } from "~/lib/utils";
 
