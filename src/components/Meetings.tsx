@@ -5,13 +5,14 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Input } from "./ui/input";
 import { Plus, Search, Calendar, Pencil } from "lucide-react";
-import { MeetingDialog, type MeetingFormData } from "./MeetingDialog";
+import { MeetingDialog, type MeetingFormData, type MeetingData } from "./MeetingDialog";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
 
 export default function Meetings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<MeetingData | null>(null);
 
   const meetingsQuery = api.meeting.getAll.useQuery();
 
@@ -26,21 +27,49 @@ export default function Meetings() {
     },
   });
 
-  const handleSave = async (data: MeetingFormData) => {
-    const loadingToast = toast.loading("Creating meeting...");
+  const updateMeetingMutation = api.meeting.updateMeeting.useMutation({
+    onSuccess: async () => {
+      await meetingsQuery.refetch();
+      toast.success("Meeting updated successfully");
+      setDialogOpen(false);
+      setEditingMeeting(null);
+    },
+    onError: () => {
+      toast.error("Failed to update meeting");
+    },
+  });
 
-    createMeetingMutation.mutate(
-      {
-        title: data.title,
-        description: data.description,
-        startTime: data.date.toISOString(),
-        link: data.meetLink,
-        status: data.status as "scheduled" | "started" | "ended",
-      },
-      {
-        onSettled: () => toast.dismiss(loadingToast),
-      },
-    );
+  const handleSave = async (data: MeetingFormData) => {
+    if (editingMeeting) {
+      const loadingToast = toast.loading("Updating meeting...");
+      updateMeetingMutation.mutate(
+        {
+          id: editingMeeting.id,
+          title: data.title,
+          description: data.description,
+          startTime: data.date.toISOString(),
+          link: data.meetLink,
+          status: data.status as "scheduled" | "started" | "ended" | "cancelled" | "delayed",
+        },
+        {
+          onSettled: () => toast.dismiss(loadingToast),
+        },
+      );
+    } else {
+      const loadingToast = toast.loading("Creating meeting...");
+      createMeetingMutation.mutate(
+        {
+          title: data.title,
+          description: data.description,
+          startTime: data.date.toISOString(),
+          link: data.meetLink,
+          status: data.status as "scheduled" | "started" | "ended",
+        },
+        {
+          onSettled: () => toast.dismiss(loadingToast),
+        },
+      );
+    }
   };
 
   const filteredMeetings = (meetingsQuery.data ?? [])
@@ -104,6 +133,7 @@ export default function Meetings() {
         </div>
         <Button
           onClick={() => {
+            setEditingMeeting(null);
             setDialogOpen(true);
           }}
         >
@@ -191,8 +221,10 @@ export default function Meetings() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
+                          setEditingMeeting(meeting as MeetingData);
                           setDialogOpen(true);
                         }}
+                        title="Edit Meeting"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -207,9 +239,12 @@ export default function Meetings() {
 
       <MeetingDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingMeeting(null);
+        }}
         onSave={handleSave}
-        meeting={null}
+        meeting={editingMeeting}
       />
     </div>
   );

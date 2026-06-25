@@ -13,6 +13,13 @@ UI for Google Meet Report - if status = ended
 
 if you have an issue with your google account, contact your HR, your deputy captain, or your team captain
 
+FIX NAVBAR INCONSISTENCY BETWEEN PAGES IN HR DASHBOARD
+LOGIN FIX - ALERT WHEN WRONG PASSWORD, ALERT WHEN EMAIL NOT EXISTS, ALLOW RETRY INSTEAD OF 
+
+DATA IN MEETING ATTENDANCE REPORT IS DUPLICATED
+USERS WHOSE EMAILS ARE PRESENT IN THE USERS DB STILL SOMEHOW SHOW AS UNREGISTERED IN THE REPORT
+
+
 To be implemented in the end:
 - Semantic HTML
 - Set Colors as Variables

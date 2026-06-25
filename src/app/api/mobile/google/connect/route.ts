@@ -5,6 +5,7 @@ import { db } from "~/server/db";
 import { accounts } from "~/server/db/schema";
 import { authenticateMobileRequest } from "~/server/api/middleware/mobile_auth";
 import { and, eq } from "drizzle-orm";
+import { syncUserAttendanceRecords } from "~/server/services/attendance";
 
 const baseUrl =
   env.NODE_ENV === "production"
@@ -159,6 +160,8 @@ export async function POST(req: NextRequest) {
         id_token: tokens.id_token ?? null,
       });
     }
+
+    await syncUserAttendanceRecords(authUser.id, providerAccountId, userInfo.data.email);
 
     return NextResponse.json(
       {

@@ -3,10 +3,11 @@ import { z } from "zod";
 import { google, type meet_v2 } from "googleapis";
 import { formatDuration } from "~/lib/utils";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { meetings } from "~/server/db/schema";
+import { meetings, attendanceRecords } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
+import { fetchAndSaveMeetingAttendance } from "~/server/services/attendance";
 
 export const meetingRouter = createTRPCRouter({
   testSync: protectedProcedure
@@ -131,6 +132,7 @@ export const meetingRouter = createTRPCRouter({
           endedAt: status === "ended" ? new Date() : null,
           meetingCode,
           status,
+          hostId: ctx.session.user.id,
         })
         .returning({ id: meetings.id });
 
@@ -144,6 +146,48 @@ export const meetingRouter = createTRPCRouter({
       }
 
       return { message: "Meeting created", meetingId };
+    }),
+
+  updateMeeting: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        title: z.string().min(1, "Title required").optional(),
+        startTime: z.string().optional(),
+        description: z.string().optional(),
+        status: z.enum(["scheduled", "started", "ended", "cancelled", "delayed"]).optional(),
+        link: z.string().url().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.session.user.role?.name !== "HR")
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only HR can update meetings",
+        });
+
+      const { id, link, title, startTime, description, status } = input;
+
+      const updateData: Record<string, any> = {};
+      if (title !== undefined) updateData.title = title;
+      if (description !== undefined) updateData.description = description;
+      if (startTime !== undefined) updateData.startTime = new Date(startTime);
+      if (status !== undefined) {
+        updateData.status = status;
+        if (status === "ended") {
+          updateData.endedAt = new Date();
+        }
+      }
+      if (link !== undefined) {
+        updateData.meetingCode = link.split("/").pop()?.split("?")[0];
+      }
+
+      await ctx.db
+        .update(meetings)
+        .set(updateData)
+        .where(eq(meetings.id, id));
+
+      return { message: "Meeting updated successfully" };
     }),
 
   updateMeetingStatus: protectedProcedure
@@ -176,6 +220,12 @@ export const meetingRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const meeting = await ctx.db.query.meetings.findFirst({
         where: eq(meetings.id, input.id),
+        with: {
+          host: true,
+          attendanceRecords: {
+            with: { internalUser: true }
+          }
+        }
       });
       if (!meeting) {
         throw new TRPCError({
@@ -202,162 +252,8 @@ export const meetingRouter = createTRPCRouter({
     }),
 
   getAttendanceReport: protectedProcedure
-    .input(z.object({ meetingCode: z.string() }))
+    .input(z.object({ meetingId: z.number() }))
     .query(async ({ ctx, input }) => {
-      const account = await ctx.db.query.accounts.findFirst({
-        where: (accounts, { eq, and }) =>
-          and(
-            eq(accounts.userId, ctx.session.user.id),
-            eq(accounts.provider, "google"),
-          ),
-      });
-
-      if (!account?.refresh_token) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message:
-            "You must connect your Google Account first to view reports.",
-        });
-      }
-
-      const oauth2Client = new google.auth.OAuth2(
-        env.GOOGLE_CLIENT_ID,
-        env.GOOGLE_CLIENT_SECRET,
-      );
-
-      oauth2Client.setCredentials({
-        access_token: account.access_token ?? undefined,
-        refresh_token: account.refresh_token,
-        expiry_date: account.expires_at ? account.expires_at * 1000 : undefined,
-      });
-
-      const meet = google.meet({ version: "v2", auth: oauth2Client });
-
-      // 1. Resolve the canonical space name from the meeting code
-      const space = await meet.spaces.get({
-        name: `spaces/${input.meetingCode}`,
-      });
-      const canonicalSpaceName = space.data.name;
-      if (!canonicalSpaceName) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Could not resolve meeting space.",
-        });
-      }
-
-      // 2. List recent conference records and filter by space (avoids API filter bugs)
-      const listRes = await meet.conferenceRecords.list({ pageSize: 10 });
-      const allRecords = listRes.data.conferenceRecords ?? [];
-      const matchingRecords = allRecords.filter(
-        (r) => r.space === canonicalSpaceName,
-      );
-
-      if (matchingRecords.length === 0 || !matchingRecords[0]?.name) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message:
-            "No conference record found. Wait ~10 minutes after the meeting ends.",
-        });
-      }
-
-      // 3. Find the most recent record that actually has participants
-      // (Google Meet creates empty records if someone clicks the link but doesn't fully join)
-      let targetRecord = matchingRecords[0]!;
-      let participants: meet_v2.Schema$Participant[] = [];
-
-      for (const record of matchingRecords) {
-        const participantsRes = await meet.conferenceRecords.participants.list({
-          parent: record.name!,
-        });
-        const pList = participantsRes.data.participants ?? [];
-
-        if (pList.length > 0) {
-          targetRecord = record;
-          participants = pList;
-          break;
-        }
-      }
-
-      const mStart = new Date(targetRecord.startTime!).getTime();
-      const mEnd = targetRecord.endTime
-        ? new Date(targetRecord.endTime).getTime()
-        : Date.now();
-      const totalMeetingMillis = mEnd - mStart;
-
-      // Fetch all Google accounts in the DB to map internal users
-      const allGoogleAccounts = await ctx.db.query.accounts.findMany({
-        where: (accounts, { eq }) => eq(accounts.provider, "google"),
-      });
-
-      // Fetch internal users to get their actual names
-      const internalUsers = await ctx.db.query.users.findMany();
-
-      const participantReports = await Promise.all(
-        participants.map(async (p) => {
-          const sessionsRes =
-            await meet.conferenceRecords.participants.participantSessions.list({
-              parent: p.name!,
-            });
-          const sessions = sessionsRes.data.participantSessions ?? [];
-
-          let pMillis = 0;
-          sessions.forEach((s) => {
-            const sStart = new Date(s.startTime!).getTime();
-            const sEnd = s.endTime ? new Date(s.endTime).getTime() : Date.now();
-            pMillis += sEnd - sStart;
-          });
-
-          const percentage =
-            totalMeetingMillis > 0
-              ? parseFloat(((pMillis / totalMeetingMillis) * 100).toFixed(2))
-              : 0;
-
-          type SignedinUserWithEmail = {
-            displayName?: string | null;
-            user?: string | null;
-            email?: string | null;
-          };
-          const signedIn = p.signedinUser as
-            | SignedinUserWithEmail
-            | null
-            | undefined;
-
-          // Try to map the Google User ID to an internal user
-          // Google Meet returns user resource names like "users/104382348324832"
-          const googleUserId = signedIn?.user?.split("/").pop();
-
-          const linkedAccount = allGoogleAccounts.find(
-            (acc) => acc.providerAccountId === googleUserId,
-          );
-
-          const internalUser = linkedAccount
-            ? internalUsers.find((u) => u.id === linkedAccount.userId)
-            : null;
-
-          return {
-            email: signedIn?.email ?? null,
-            displayName:
-              signedIn?.displayName ??
-              p.anonymousUser?.displayName ??
-              "Unknown Guest",
-            userResourceName: signedIn?.user ?? null,
-            duration: formatDuration(pMillis),
-            durationMillis: pMillis,
-            percentage,
-            sessionCount: sessions.length,
-            // Add internal user data if we found a match!
-            internalUserId: internalUser?.id ?? null,
-            internalUserName: internalUser?.name ?? null,
-            internalUserRole: internalUser?.roleId ?? null,
-          };
-        }),
-      );
-
-      return {
-        meetingStartTime: targetRecord.startTime ?? null,
-        meetingEndTime: targetRecord.endTime ?? null,
-        totalDuration: formatDuration(totalMeetingMillis),
-        participants: participantReports,
-      };
+      return fetchAndSaveMeetingAttendance(input.meetingId, ctx.session.user.id);
     }),
 });

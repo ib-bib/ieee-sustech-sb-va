@@ -22,6 +22,7 @@ import {
 } from "~/components/ui/dialog";
 import { api } from "~/trpc/react";
 import { toast } from "sonner";
+import { formatDuration } from "~/lib/utils";
 
 interface Meeting {
   id: number;
@@ -32,6 +33,18 @@ interface Meeting {
   startTime: Date | null;
   endedAt: Date | null;
   createdAt: Date | null;
+  isReportFetched?: boolean | null;
+  totalDuration?: number | null;
+  attendanceRecords?: Array<{
+    email: string | null;
+    displayName: string;
+    userResourceName: string | null;
+    durationMillis: number;
+    percentage: string;
+    sessionCount: number;
+    internalUserId: string | null;
+    internalUser?: { name: string | null; roleId: number } | null;
+  }>;
 }
 
 interface MeetingDetailViewProps {
@@ -52,14 +65,44 @@ type ParticipantData = {
 };
 
 export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
-  const [reportEnabled, setReportEnabled] = useState(false);
+  const [reportEnabled, setReportEnabled] = useState(meeting.isReportFetched ?? false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<ParticipantData | null>(null);
 
+  const initialReport =
+    meeting.isReportFetched && meeting.attendanceRecords
+      ? {
+          status: "fetched" as const,
+          data: {
+            meetingStartTime: meeting.startTime?.toISOString() ?? null,
+            meetingEndTime: meeting.endedAt?.toISOString() ?? null,
+            totalDuration: meeting.totalDuration
+              ? formatDuration(meeting.totalDuration)
+              : "0s",
+            participants: meeting.attendanceRecords.map((r) => ({
+              email: r.email,
+              displayName: r.displayName,
+              userResourceName: r.userResourceName,
+              duration: formatDuration(r.durationMillis),
+              durationMillis: r.durationMillis,
+              percentage: Number(r.percentage),
+              sessionCount: r.sessionCount,
+              internalUserId: r.internalUserId,
+              internalUserName: r.internalUser?.name ?? null,
+              internalUserRole: r.internalUser?.roleId ?? null,
+            })),
+          },
+        }
+      : undefined;
+
   const reportQuery = api.meeting.getAttendanceReport.useQuery(
-    { meetingCode: meeting.meetingCode ?? "" },
+    { meetingId: meeting.id },
     {
-      enabled: reportEnabled && !!meeting.meetingCode,
+      enabled: reportEnabled,
+      initialData: initialReport,
+      staleTime: Infinity,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
       retry: false,
     },
   );
@@ -145,7 +188,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
             )}
           </div>
 
-          {meeting.status === "ended" && meeting.meetingCode && (
+          {meeting.status === "ended" && meeting.meetingCode && !meeting.isReportFetched && reportQuery.data?.status !== "fetched" && (
             <Button
               variant="outline"
               onClick={handleFetchReport}
@@ -155,11 +198,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
               <RefreshCw
                 className={`h-4 w-4 ${reportQuery.isFetching ? "animate-spin" : ""}`}
               />
-              {reportQuery.isFetching
-                ? "Fetching..."
-                : reportEnabled
-                  ? "Refresh Report"
-                  : "Fetch Attendance Report"}
+              {reportQuery.isFetching ? "Fetching..." : "Fetch Attendance Report"}
             </Button>
           )}
         </div>
@@ -262,7 +301,25 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
               </div>
             )}
 
-            {reportQuery.data && !reportQuery.isFetching && (
+            {reportQuery.data?.status === "unfetched" && !reportQuery.isFetching && (
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <AlertCircle className="h-8 w-8 text-orange-500" />
+                <h3 className="text-lg font-semibold text-gray-900">Attendance Report Not Yet Fetched</h3>
+                <p className="max-w-md text-sm text-gray-500">
+                  This meeting's attendance data has not been retrieved from Google Meet yet. Only the original host can perform the initial fetch.
+                </p>
+                <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 w-full max-w-sm">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Original Host</p>
+                  <p className="font-semibold text-gray-900">{reportQuery.data.host.name}</p>
+                  <p className="text-sm text-gray-600">{reportQuery.data.host.email}</p>
+                </div>
+                <p className="text-xs text-gray-400 mt-2">
+                  Please ask the host to open this page and click &quot;Fetch Attendance Report&quot;.
+                </p>
+              </div>
+            )}
+
+            {reportQuery.data?.status === "fetched" && !reportQuery.isFetching && (
               <div className="space-y-6">
                 {/* Summary Stats */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -272,7 +329,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                       Total
                     </div>
                     <p className="mt-1 text-2xl font-bold text-gray-900">
-                      {reportQuery.data.participants.length}
+                      {reportQuery.data.data.participants.length}
                     </p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -281,7 +338,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                       Registered
                     </div>
                     <p className="mt-1 text-2xl font-bold text-green-700">
-                      {reportQuery.data.participants.filter((p: any) => p.internalUserId).length}
+                      {reportQuery.data.data.participants.filter((p: any) => p.internalUserId).length}
                     </p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -290,7 +347,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                       Unregistered
                     </div>
                     <p className="mt-1 text-2xl font-bold text-orange-700">
-                      {reportQuery.data.participants.filter((p: any) => !p.internalUserId).length}
+                      {reportQuery.data.data.participants.filter((p: any) => !p.internalUserId).length}
                     </p>
                   </div>
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -299,7 +356,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                       Duration
                     </div>
                     <p className="mt-1 text-2xl font-bold text-gray-900">
-                      {reportQuery.data.totalDuration}
+                      {reportQuery.data.data.totalDuration}
                     </p>
                   </div>
                 </div>
@@ -327,7 +384,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                     </DialogHeader>
 
                     {!selectedParticipant ? (
-                      reportQuery.data.participants.length === 0 ? (
+                      reportQuery.data.data.participants.length === 0 ? (
                         <p className="py-8 text-center text-sm text-gray-500">
                           No participants found for this meeting.
                         </p>
@@ -343,7 +400,7 @@ export function MeetingDetailView({ meeting }: MeetingDetailViewProps) {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                              {reportQuery.data.participants.map((p: any, i: number) => {
+                              {reportQuery.data.data.participants.map((p: any, i: number) => {
                                 const isGoodAttendance = p.percentage >= 75;
                                 const isRegistered = !!p.internalUserId;
 

@@ -90,11 +90,11 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
       <div className="relative flex min-h-[calc(100vh-72px)]">
         <aside
           className={cn(
-            "flex flex-col border-r border-[#004d70] bg-gradient-to-b from-[#00629B] to-[#005280]",
-            "fixed top-[73px] left-0 z-40 h-[calc(100vh-73px)] overflow-x-hidden overflow-y-auto lg:sticky",
-            "transition-[width] duration-[300ms]",
+            "flex flex-col border-r border-[#004d70] bg-linear-to-b from-[#00629B] to-[#005280]",
+            "fixed top-18.25 left-0 z-40 h-[calc(100vh-73px)] overflow-x-hidden overflow-y-auto lg:sticky",
+            "transition-[width] duration-300",
             // DELAY: When collapsing, wait 300ms (text 150 + icon 150). When opening, start immediately.
-            isSidebarCollapsed ? "w-20 delay-[300ms]" : "w-64 delay-0",
+            isSidebarCollapsed ? "w-20 delay-300" : "w-64 delay-0",
             isMobileNavOpen
               ? "translate-x-0"
               : "-translate-x-full lg:translate-x-0",
@@ -122,11 +122,11 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
                   {/* ICON CONTAINER: Handles the sliding/centering */}
                   <div
                     className={cn(
-                      "absolute flex items-center justify-center transition-all duration-[150ms]",
+                      "absolute flex items-center justify-center transition-all duration-150",
                       // When collapsing: wait for text (150ms). When opening: wait for sidenav (150ms).
                       isSidebarCollapsed
-                        ? "left-1/2 -translate-x-1/2 delay-[150ms]"
-                        : "left-4 translate-x-0 delay-[150ms]",
+                        ? "left-1/2 -translate-x-1/2 delay-150"
+                        : "left-4 translate-x-0 delay-150",
                       "h-5 w-5",
                     )}
                   >
@@ -136,7 +136,7 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
                   {/* TEXT LABEL: Handles the fading */}
                   <span
                     className={cn(
-                      "pl-12 whitespace-nowrap transition-opacity duration-[150ms]",
+                      "pl-12 whitespace-nowrap transition-opacity duration-150",
                       // When collapsing: start immediately. When opening: wait for everything (450ms).
                       isSidebarCollapsed
                         ? "opacity-0 delay-0"
@@ -158,7 +158,7 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
             >
               <div
                 className={cn(
-                  "transition-transform duration-[450ms] ease-in-out",
+                  "transition-transform duration-450 ease-in-out",
                   isSidebarCollapsed ? "rotate-180" : "rotate-0",
                 )}
               >
@@ -168,7 +168,7 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
               {/* "Collapse" text follows the same fade logic as nav items */}
               <span
                 className={cn(
-                  "overflow-hidden whitespace-nowrap transition-all duration-[150ms]",
+                  "overflow-hidden whitespace-nowrap transition-all duration-150",
                   isSidebarCollapsed
                     ? "w-0 opacity-0 delay-0"
                     : "ml-2 w-auto opacity-100 delay-[450ms]",
@@ -193,7 +193,7 @@ export function HRLayout({ children, userName, userRole }: HRLayoutProps) {
             isSidebarCollapsed ? "lg:pl-24" : "lg:pl-64",
           )}
         >
-          <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-400 px-4 py-6 sm:px-6 lg:px-8">
             {children}
           </div>
         </main>

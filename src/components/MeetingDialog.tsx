@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Dialog,
@@ -65,6 +65,26 @@ export function MeetingDialog({
     useForm<MeetingFormData>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (meeting) {
+        setValue("title", meeting.title ?? "");
+        setValue("description", meeting.description ?? "");
+        setValue("status", meeting.status ?? "scheduled");
+        setValue("date", meeting.startTime ? new Date(meeting.startTime) : new Date());
+        setValue("meetLink", meeting.meetingCode ? `https://meet.google.com/${meeting.meetingCode}` : "");
+      } else {
+        reset({
+          title: "",
+          description: "",
+          status: "scheduled",
+          date: new Date(),
+          meetLink: "",
+        });
+      }
+    }
+  }, [meeting, open, setValue, reset]);
 
   const statusValue = watch("status") ?? "";
 
@@ -221,7 +241,7 @@ export function MeetingDialog({
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Creating..." : "Create"}
+              {isSubmitting ? "Saving..." : meeting ? "Save Changes" : "Create"}
             </Button>
           </DialogFooter>
         </form>

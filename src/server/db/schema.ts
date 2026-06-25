@@ -297,6 +297,26 @@ export const meetings = createTable("meeting", (d) => ({
   endedAt: d.timestamp("ended_at", { withTimezone: true, mode: "date" }),
   createdAt: d.timestamp("created_at").defaultNow(),
   status: meetingStatusEnum(),
+  hostId: d.varchar("host_id", { length: 255 }).references(() => users.id),
+  isReportFetched: d.boolean("is_report_fetched").default(false).notNull(),
+  totalDuration: d.integer("total_duration"),
+}));
+
+export const attendanceRecords = createTable("attendance_record", (d) => ({
+  id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+  meetingId: d
+    .integer("meeting_id")
+    .notNull()
+    .references(() => meetings.id, { onDelete: "cascade" }),
+  internalUserId: d
+    .varchar("internal_user_id", { length: 255 })
+    .references(() => users.id, { onDelete: "set null" }),
+  displayName: d.varchar("display_name", { length: 255 }).notNull(),
+  email: d.varchar("email", { length: 255 }),
+  userResourceName: d.varchar("user_resource_name", { length: 255 }),
+  durationMillis: d.integer("duration_millis").notNull(),
+  percentage: d.numeric("percentage").notNull(),
+  sessionCount: d.integer("session_count").notNull(),
 }));
 
 export const meetingParticipations = createTable(
@@ -400,8 +420,13 @@ export const eventParticipationsRelations = relations(
   }),
 );
 
-export const meetingsRelations = relations(meetings, ({ many }) => ({
+export const meetingsRelations = relations(meetings, ({ one, many }) => ({
   participants: many(meetingParticipations),
+  attendanceRecords: many(attendanceRecords),
+  host: one(users, {
+    fields: [meetings.hostId],
+    references: [users.id],
+  }),
 }));
 
 export const meetingParticipationsRelations = relations(
@@ -414,6 +439,20 @@ export const meetingParticipationsRelations = relations(
     meeting: one(meetings, {
       fields: [meetingParticipations.meetingId],
       references: [meetings.id],
+    }),
+  }),
+);
+
+export const attendanceRecordsRelations = relations(
+  attendanceRecords,
+  ({ one }) => ({
+    meeting: one(meetings, {
+      fields: [attendanceRecords.meetingId],
+      references: [meetings.id],
+    }),
+    internalUser: one(users, {
+      fields: [attendanceRecords.internalUserId],
+      references: [users.id],
     }),
   }),
 );
