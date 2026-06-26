@@ -23,6 +23,7 @@ export async function GET(_req: NextRequest) {
   const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
+    state: "web",
     scope: [
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
