@@ -178,6 +178,7 @@ export const userRouter = createTRPCRouter({
         .update(users)
         .set({
           password: hashedNewPassword,
+          isFirstLogin: false,
         })
         .where(eq(users.id, ctx.session.user.id))
         .returning({ name: users.name });
@@ -230,6 +231,7 @@ export const userRouter = createTRPCRouter({
         .update(users)
         .set({
           password: hashedNewPassword,
+          isFirstLogin: false,
         })
         .where(eq(users.id, ctx.session.user.id))
         .returning({ name: users.name });

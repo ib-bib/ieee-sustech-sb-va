@@ -13,7 +13,6 @@ import WhiteSpinner from "./white_spinner";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
@@ -106,7 +105,7 @@ export default function ChangePassword() {
             <label htmlFor="newPassword">Password</label>
             <div className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-300 p-3">
               <LockClosedIcon className="size-5" />
-              <Input
+              <input
                 name="newPassword"
                 className="outline-none"
                 placeholder="New Password"

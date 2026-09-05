@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
-import { meetings } from "~/server/db/schema";
+import { meetings, notifications } from "~/server/db/schema";
 import { authenticateMobileRequest } from "~/server/api/middleware/mobile_auth";
 
 const CreateMeetingSchema = z.object({
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       where: (r, { eq }) => eq(r.id, authUser.roleId),
     });
 
-    if (userRole?.name !== "HR") {
+    if (userRole?.name !== "HR" && userRole?.name !== "HR Leader") {
       return NextResponse.json(
         { error: "Only HR members can access this endpoint" },
         { status: 403 },
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       where: (r, { eq }) => eq(r.id, authUser.roleId),
     });
 
-    if (userRole?.name !== "HR") {
+    if (userRole?.name !== "HR" && userRole?.name !== "HR Leader") {
       return NextResponse.json(
         { error: "Only HR members can create meetings" },
         { status: 403 },
@@ -145,6 +145,34 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
+
+    // --- ADD NOTIFICATION LOGIC ---
+    let targetUserIds: string[] = [];
+
+    if (userRole?.name === "HR Leader") {
+      const allUsers = await db.query.users.findMany({
+        where: (u, { ne }) => ne(u.id, authUser.id),
+      });
+      targetUserIds = allUsers.map((u) => u.id);
+    } else if (userRole?.name === "HR") {
+      if (authUser.teamId) {
+        const teamUsers = await db.query.users.findMany({
+          where: (u, { and, eq, ne }) =>
+            and(eq(u.teamId, authUser.teamId!), ne(u.id, authUser.id)),
+        });
+        targetUserIds = teamUsers.map((u) => u.id);
+      }
+    }
+
+    if (targetUserIds.length > 0) {
+      await db.insert(notifications).values(
+        targetUserIds.map((userId) => ({
+          userId,
+          message: `A new meeting "${title}" has been scheduled by ${authUser.name ?? "HR"}.`,
+        }))
+      );
+    }
+    // ------------------------------
 
     return NextResponse.json(
       {
