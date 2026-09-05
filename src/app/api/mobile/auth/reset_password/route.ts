@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
       .update(users)
       .set({
         password: hashedNewPassword,
+        isFirstLogin: false,
       })
       .where(eq(users.email, authenticatedUser.email))
       .returning({

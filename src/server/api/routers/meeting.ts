@@ -3,7 +3,7 @@ import { z } from "zod";
 import { google } from "googleapis";
 import { formatDuration } from "~/lib/utils";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
-import { meetings } from "~/server/db/schema";
+import { meetings, notifications, users } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
@@ -108,7 +108,7 @@ export const meetingRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.user.role?.name !== "HR")
+      if (ctx.session.user.role?.name !== "HR" && ctx.session.user.role?.name !== "HR Leader")
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only HR can create meetings",
@@ -145,6 +145,39 @@ export const meetingRouter = createTRPCRouter({
         });
       }
 
+      // --- ADD NOTIFICATION LOGIC ---
+      const creator = await ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.session.user.id),
+        with: { role: true },
+      });
+
+      let targetUserIds: string[] = [];
+
+      if (creator?.role?.name === "HR Leader") {
+        const allUsers = await ctx.db.query.users.findMany({
+          where: (u, { ne }) => ne(u.id, ctx.session.user.id),
+        });
+        targetUserIds = allUsers.map((u) => u.id);
+      } else if (creator?.role?.name === "HR") {
+        if (creator.teamId) {
+          const teamUsers = await ctx.db.query.users.findMany({
+            where: (u, { and, eq, ne }) =>
+              and(eq(u.teamId, creator.teamId!), ne(u.id, ctx.session.user.id)),
+          });
+          targetUserIds = teamUsers.map((u) => u.id);
+        }
+      }
+
+      if (targetUserIds.length > 0) {
+        await ctx.db.insert(notifications).values(
+          targetUserIds.map((userId) => ({
+            userId,
+            message: `A new meeting "${title}" has been scheduled by ${creator?.name ?? "HR"}.`,
+          }))
+        );
+      }
+      // ------------------------------
+
       return { message: "Meeting created", meetingId };
     }),
 
@@ -160,7 +193,7 @@ export const meetingRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.user.role?.name !== "HR")
+      if (ctx.session.user.role?.name !== "HR" && ctx.session.user.role?.name !== "HR Leader")
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only HR can update meetings",
@@ -198,7 +231,7 @@ export const meetingRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.user.role?.name !== "HR")
+      if (ctx.session.user.role?.name !== "HR" && ctx.session.user.role?.name !== "HR Leader")
         throw new TRPCError({ code: "FORBIDDEN", message: "Unauthorized" });
       await ctx.db
         .update(meetings)

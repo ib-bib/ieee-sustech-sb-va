@@ -37,7 +37,7 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (!res?.ok) {
+    if (res?.error) {
       toast.error("Incorrect email or password. Please try again");
       setValidUser(false);
       return;
@@ -61,7 +61,7 @@ export default function LoginPage() {
           e.preventDefault();
           await handleLogin();
         }}
-        className="flex h-[26rem] w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs"
+        className="flex h-104 w-96 flex-col items-center justify-between rounded-2xl py-4 shadow-2xl backdrop-blur-xs"
       >
         <Link href="/" className="w-16 sm:w-18 md:w-20 lg:w-22 xl:w-24">
           <Image
