@@ -15,7 +15,7 @@ const globalForDb = globalThis as unknown as {
 
 // const conn = globalForDb.conn ?? postgres(env.DATABASE_URL);
 
-const sql = globalForDb.sql ?? neon(env.DATABASE_URL);
+const sql = globalForDb.sql ?? neon(env.DATABASE_URL, { fetchOptions: { cache: "no-store" } });
 
 // if (env.NODE_ENV !== "production") globalForDb.conn = conn;
 
